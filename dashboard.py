@@ -18,9 +18,12 @@ import briefing_controls
 
 st.set_page_config(page_title='NAMONEYBERG',page_icon='🌐',layout='wide')
 ui_theme.apply()
-st.markdown('<div class="brand-head"><div class="brand-name"><b>NAMONEYBERG</b></div></div>',unsafe_allow_html=True)
-
-nav_slot=st.container(key='main_navigation')
+with st.container(key='site_header'):
+    logo_col,menu_col=st.columns([2,8],vertical_alignment='center')
+    with logo_col:
+        st.markdown('<div class="brand-head"><div class="brand-name"><b>NAMONEYBERG</b></div></div>',unsafe_allow_html=True)
+    with menu_col:
+        nav_slot=st.container(key='main_navigation')
 market_ui.ticker()
 
 @st.cache_data(ttl=1800,show_spinner=False)
@@ -112,7 +115,7 @@ def render_page(page,embedded=False):
         return
 
     if page=='세계 요약':
-        st.markdown(f'<div class="edition-line"><span>GLOBAL ECONOMY</span><span>{data.now():%Y.%m.%d} · SEOUL</span></div>',unsafe_allow_html=True)
+        st.markdown(f'<div class="edition-line"><span>주요국 정책금리</span><span>{data.now():%Y.%m.%d} 기준</span></div>',unsafe_allow_html=True)
         with st.spinner('공식 통계와 금리를 불러오고 있습니다…'):
             jobs=[('cpi',''),('wb','gdp'),('wb','unemployment'),('policy','')]
             with ThreadPoolExecutor(max_workers=4) as pool:
@@ -210,7 +213,7 @@ def render_page(page,embedded=False):
 
     elif page in ('이번 주 마켓 오버뷰','LOE 위클리'):
         start,end=data.week_bounds()
-        st.markdown('<div id="weekly-review" class="section-heading"><div><span class="section-kicker">WEEKLY REVIEW</span><h2>글로벌 브리프 · 이번 주 시장 해설</h2></div></div>',unsafe_allow_html=True)
+        st.markdown('<div id="weekly-review" class="section-heading"><div><h2>이번 주 마켓 오버뷰</h2></div></div>',unsafe_allow_html=True)
         st.caption(f'{start:%Y-%m-%d %H:%M} ~ {end:%Y-%m-%d %H:%M} · 한국시간 · 월요일 시작')
         refresh=False
         articles=[];statuses=[]
@@ -421,7 +424,7 @@ public_specs=[spec for spec in PAGE_SPECS if spec[2] not in ('settings','sources
 active_spec=PAGE_SPECS[active_index]
 if active_spec in public_specs:
     menu_index=public_specs.index(active_spec)+1
-    st.markdown(f'<style>.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a{{background:transparent!important;color:#80634e!important;border-bottom:3px solid #80634e!important}}.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a p{{color:#80634e!important;font-weight:750!important}}</style>',unsafe_allow_html=True)
+    st.markdown(f'<style>.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a{{background:transparent!important;color:var(--nb-accent)!important;border-bottom:3px solid var(--nb-accent)!important}}.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a p{{color:var(--nb-accent)!important;font-weight:600!important}}</style>',unsafe_allow_html=True)
 
 with nav_slot:
     for spec,nav_page in zip(PAGE_SPECS,pages):
