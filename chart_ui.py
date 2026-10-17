@@ -4,13 +4,17 @@ import pandas as pd
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-def timeseries(frame,x,y,unit,group=None,color='#315d97',height=350):
+def timeseries(frame,x,y,unit,group=None,color='#315d97',height=350,domain=None):
+    alt.data_transformers.disable_max_rows()
     today=pd.Timestamp(datetime.now(ZoneInfo('Asia/Seoul')).date())
     f=frame.dropna(subset=[x,y]).reset_index(drop=True).copy()
     f[x]=pd.to_datetime(f[x]).dt.tz_localize(None)
     f=f[f[x].between(pd.Timestamp('2000-01-01'),today)].copy()
+    if f.empty:return alt.Chart(pd.DataFrame({x:[],y:[]})).mark_line().properties(height=height)
+    lo,hi=(pd.Timestamp(domain[0]),pd.Timestamp(domain[1])) if domain else (pd.Timestamp('2000-01-01'),today)
+    lo=max(lo,pd.Timestamp('2000-01-01'));hi=min(hi,today)
     tip=([alt.Tooltip(group+':N',title='계열')] if group else [])+[alt.Tooltip(x+':T',title='날짜',format='%Y-%m-%d'),alt.Tooltip(y+':Q',title=unit,format=',.4f')]
-    base=alt.Chart(f).encode(x=alt.X(x+':T',title=None,scale=alt.Scale(domain=[alt.DateTime(year=2000,month=1,date=1),alt.DateTime(year=today.year,month=today.month,date=today.day)],nice=False)),y=alt.Y(y+':Q',title=unit,scale=alt.Scale(zero=False)))
+    base=alt.Chart(f).encode(x=alt.X(x+':T',title=None,scale=alt.Scale(domain=[alt.DateTime(year=lo.year,month=lo.month,date=lo.day),alt.DateTime(year=hi.year,month=hi.month,date=hi.day)],nice=False)),y=alt.Y(y+':Q',title=unit,scale=alt.Scale(zero=False)))
     if group:base=base.encode(color=alt.Color(group+':N',legend=alt.Legend(orient='bottom')))
     if group:
         visible=alt.selection_point(fields=[group],bind='legend',toggle='true',clear=False,empty=False,value=[{group:str(v)} for v in f[group].dropna().unique()])

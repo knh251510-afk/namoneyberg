@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+.private/
+.streamlit/secrets.toml
+macro_cache/
+results/
+*.sqlite3
+.DS_Store
