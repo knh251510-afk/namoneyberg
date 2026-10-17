@@ -100,6 +100,11 @@ def render_page(page,embedded=False):
         from html import escape
         st.markdown('<div class="page-heading"><div class="breadcrumb">홈 &nbsp; / &nbsp; '+escape(page)+'</div><h1>'+escape(page)+'</h1></div>',unsafe_allow_html=True)
 
+    if page=='데이터 비교':
+        import data_compare_ui
+        data_compare_ui.render(fetch_safe)
+        return
+
     if page=='세계 요약':
         st.markdown(f'<div class="edition-line"><span>GLOBAL ECONOMY</span><span>{data.now():%Y.%m.%d} · SEOUL</span></div>',unsafe_allow_html=True)
         with st.spinner('공식 통계와 금리를 불러오고 있습니다…'):
@@ -391,7 +396,7 @@ def render_page(page,embedded=False):
 PAGE_SPECS=[('세계 요약','마켓 오버뷰','overview'),('물가 · 정책금리','물가·금리','prices'),
             ('경기 · 무역 비교','경기·무역','economy'),('시장 · 고빈도 지표','시장지표','markets'),
             ('이번 주 마켓 오버뷰','마켓 오버뷰','weekly'),('뉴스','뉴스','news'),('경제지표 일정','경제지표 일정','calendar'),
-            ('시장 시세','시장 시세','quotes'),('경제 용어','경제 용어','glossary'),('관리자','관리자','admin'),('API 설정','API 설정','settings'),('데이터 안내','데이터 안내','sources')]
+            ('시장 시세','시장 시세','quotes'),('데이터 비교','데이터 비교','compare'),('경제 용어','경제 용어','glossary'),('관리자','관리자','admin'),('API 설정','API 설정','settings'),('데이터 안내','데이터 안내','sources')]
 pages=[]
 for original,title,slug in PAGE_SPECS:
     def make_page(name):
@@ -415,5 +420,6 @@ with nav_slot:
 if st.query_params.get('page')=='settings':
     del st.query_params['page']
     st.switch_page(next(p for p,spec in zip(pages,PAGE_SPECS) if spec[2]=='settings'))
-active.run()
+with st.container(key="page_body"):
+    active.run()
 st.markdown('<footer class="terminal-footer"><b>NAMONEYBERG</b><nav aria-label="관리 메뉴"><a href="/admin">관리자</a><a href="/sources">데이터 안내</a></nav></footer>',unsafe_allow_html=True)

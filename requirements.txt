@@ -6,3 +6,7 @@ httpx
 plotly
 yfinance
 openai
+
+altair
+keyring
+openpyxl
