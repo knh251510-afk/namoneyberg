@@ -430,4 +430,6 @@ if st.query_params.get('page')=='settings':
     st.switch_page(next(p for p,spec in zip(pages,PAGE_SPECS) if spec[2]=='settings'))
 with st.container(key="page_body"):
     active.run()
+if st.session_state.pop('open_comparison',False):
+    st.switch_page(next(p for p in pages if p.url_path=='compare'))
 st.markdown('<footer class="terminal-footer"><b>NAMONEYBERG</b><nav aria-label="관리 메뉴"><a href="/admin">관리자</a><a href="/sources">데이터 안내</a></nav></footer>',unsafe_allow_html=True)
