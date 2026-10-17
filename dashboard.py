@@ -14,6 +14,7 @@ import portal_ui
 import market_ui
 import chart_ui
 import admin_auth
+import briefing_controls
 
 st.set_page_config(page_title='NAMONEYBERG',page_icon='🌐',layout='wide')
 ui_theme.apply()
@@ -279,7 +280,7 @@ def render_page(page,embedded=False):
             st.caption('주간 변화는 이전 주 마지막 관측과 이번 주 최신 관측을 비교합니다. 원유·금은 선물이며 가격과 휴장일은 시장마다 다릅니다.')
         for status in statuses:
             if status.get('error') or status.get('stale'):st.warning(status['source']+' 연결 실패 또는 이전 저장 자료 사용')
-        if admin_auth.is_admin() and st.button('브리핑 생성',type='primary',disabled=not articles):
+        if briefing_controls.request_generation(bool(articles)):
             if not admin_auth.is_admin():st.stop()
             try:
                 key=settings.read_key('OpenAI')
@@ -309,6 +310,7 @@ def render_page(page,embedded=False):
                     if candidate['period']['start']==start.isoformat():
                         saved=candidate;st.session_state['weekly_report']=saved;break
                 except (ValueError,KeyError,OSError):continue
+        st.caption(briefing_controls.updated_label(saved))
         if saved and saved['period']['start']==start.isoformat():
             r=saved['report']
             from html import escape
