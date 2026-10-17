@@ -1,19 +1,19 @@
 """NAMONEYBERG 공통 디자인. 단일 스타일 정의로 레이아웃 충돌 방지."""
 import streamlit as st
 import altair as alt
-PALETTE=['#315d97','#35a1b5','#789557','#a07398','#c29950','#6b84b6','#b46b65','#6f8f95']
+PALETTE=['#245b78','#b46a43','#3c8278','#8e6c91','#b39845','#647c9a','#b45e70','#667a57']
 def apply():
     st.markdown("""<style>
 @font-face{font-family:Pretendard;src:url('/app/static/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
 :root{
- --nb-primary:#243f63;--nb-accent:#82664f;--nb-bg:#f6f8fb;--nb-surface:#fff;
- --nb-text:#182433;--nb-muted:#526174;--nb-border:#dce1e7;--nb-soft:#f1f4f8;
+ --nb-primary:#234657;--nb-accent:#986348;--nb-bg:#f5f3ee;--nb-surface:#fff;
+ --nb-text:#252b2e;--nb-muted:#596469;--nb-border:#deded7;--nb-soft:#eeeee8;
  --nb-radius:6px;--nb-space-1:4px;--nb-space-2:8px;--nb-space-3:16px;--nb-space-4:24px;--nb-space-5:32px;
 }
 *{box-sizing:border-box}
 html,body,.stApp{font-family:Pretendard,-apple-system,BlinkMacSystemFont,sans-serif;color:var(--nb-text);background:var(--nb-bg)}
 .stApp p,.stApp h1,.stApp h2,.stApp h3,.stApp h4,.stApp button,.stApp label,.stApp input,.stApp a,.stApp table{font-family:Pretendard,-apple-system,sans-serif!important}
-.stApp p{font-size:14px;line-height:1.75}
+.stApp p{font-size:14px;line-height:1.75}.stApp{font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}.stApp h1,.stApp h2,.stApp h3,.stApp h4{font-weight:650}.stApp table,.stApp [data-testid="stMetricValue"]{font-variant-numeric:tabular-nums}
 .stApp h1{font-size:28px;line-height:1.3;letter-spacing:-.6px}
 .stApp h2{font-size:22px;line-height:1.4;letter-spacing:-.4px}
 .stApp h3{font-size:18px;line-height:1.5;letter-spacing:-.3px}
@@ -21,8 +21,8 @@ html,body,.stApp{font-family:Pretendard,-apple-system,BlinkMacSystemFont,sans-se
 [data-testid="stAppDeployButton"]{display:none}
 [data-testid="stMainBlockContainer"]{max-width:1248px;padding:32px 24px}
 .stApp [data-testid="stVerticalBlock"]{gap:16px}
-.brand-head{display:flex;align-items:center;min-height:64px;padding:8px 8px 24px}
-.brand-name,.brand-name b{font-size:26px;font-weight:800;color:var(--nb-primary);letter-spacing:-.6px}
+.brand-head{border-bottom:1px solid var(--nb-border);margin-bottom:16px;display:flex;align-items:center;min-height:64px;padding:8px 8px 24px}
+.brand-name,.brand-name b{font-size:26px;font-weight:750;color:var(--nb-primary);letter-spacing:-.6px}
 .st-key-main_navigation{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;gap:0 24px!important;padding:0 16px!important;background:var(--nb-surface);border:1px solid var(--nb-border);border-radius:var(--nb-radius);margin-bottom:24px!important}
 .st-key-main_navigation [data-testid="stElementContainer"]{width:auto!important;flex:0 0 auto!important}
 .st-key-main_navigation a{border-radius:0!important;white-space:nowrap;padding:14px 0!important;background:transparent!important;border:0!important;border-bottom:3px solid transparent!important;color:var(--nb-muted)!important;text-decoration:none!important}
@@ -123,7 +123,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #8b
 .brief-lead p{font-size:14px!important;line-height:1.85!important;color:var(--nb-text);margin:0}
 .brief-topic{padding:0 0 24px;margin:0 0 24px;border-bottom:1px solid var(--nb-border)}
 .brief-topic:last-child{margin-bottom:0;border-bottom:0}
-.brief-topic h4{font-size:16px!important;line-height:1.6!important;margin:0 0 16px;padding:0;color:var(--nb-primary)}
+.brief-topic h4{font-size:17px!important;line-height:1.6!important;margin:0 0 16px;padding:0;color:var(--nb-primary)}
 .brief-topic dl{display:grid;grid-template-columns:80px 1fr;gap:12px 16px;margin:0;font-size:14px;line-height:1.85}
 .brief-topic dt{font-size:12px;font-weight:600;color:var(--nb-accent);padding-top:2px}.brief-topic dd{margin:0;color:var(--nb-text);word-break:keep-all;overflow-wrap:anywhere}
 .brief-sources{margin-top:16px;font-size:12px;color:var(--nb-muted)}.brief-sources summary{cursor:pointer;padding:4px 0}
@@ -138,6 +138,6 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #8b
 @media(prefers-reduced-motion:reduce){.quote-track{animation:none}.quote-ticker{overflow-x:auto}}
 </style>""",unsafe_allow_html=True)
     def portal():
-        return {'config':{'background':'#fff','font':'Pretendard','view':{'stroke':None},'range':{'category':PALETTE},'axis':{'labelColor':'#8490a1','titleColor':'#577396','gridColor':'#e8edf4','domainColor':'#ccd6e3','labelFont':'Pretendard','titleFont':'Pretendard'},'legend':{'labelColor':'#738299','labelFont':'Pretendard','titleFont':'Pretendard'},'title':{'color':'#345780','font':'Pretendard'}}}
+        return {'config':{'background':'#fff','font':'Pretendard','view':{'stroke':None},'range':{'category':PALETTE},'axis':{'labelColor':'#596469','titleColor':'#234657','gridColor':'#ecece6','domainColor':'#ccd6e3','labelFont':'Pretendard','titleFont':'Pretendard'},'legend':{'labelColor':'#596469','labelFont':'Pretendard','titleFont':'Pretendard'},'title':{'color':'#345780','font':'Pretendard'}}}
     alt.themes.register('macro_portal',portal)
     alt.themes.enable('macro_portal')

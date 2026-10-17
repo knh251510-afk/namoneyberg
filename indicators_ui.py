@@ -1,4 +1,5 @@
 """One catalog for browsing and composing economic/market series."""
+from html import escape
 import pandas as pd
 import streamlit as st
 import chart_ui
@@ -34,7 +35,9 @@ def render(fetch_safe):
     if f.empty:st.info('표시할 관측값이 없습니다.');return
     st.subheader(name)
     last=f.iloc[-1];delta=None if len(f)<2 else float(last.value-f.value.iloc[-2])
-    st.metric(options[name][3],f'{last.value:,.2f}',None if delta is None else f'{delta:+.2f}',delta_color='off')
+    direction='rise' if delta is not None and delta>0 else ('fall' if delta is not None and delta<0 else 'flat')
+    change='' if delta is None else f'<span class="{direction}">{delta:+.2f}</span>'
+    st.markdown(f'<div style="display:flex;align-items:baseline;gap:16px;padding:12px 0 20px;font-variant-numeric:tabular-nums"><strong style="font-size:30px;font-weight:650;color:#234657">{last.value:,.2f}</strong><span style="font-size:12px;color:#596469">{escape(options[name][3])}</span>{change}</div>',unsafe_allow_html=True)
     st.altair_chart(chart_ui.timeseries(f,'date','value',options[name][3]),use_container_width=True,theme=None)
     with st.expander('기준 · 출처'):
         st.caption('마지막 관측: '+last.date.strftime('%Y-%m-%d')+' · 변화는 직전 관측값과의 차이')

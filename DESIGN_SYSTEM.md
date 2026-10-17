@@ -14,3 +14,9 @@ License: licenses/Tabler-LICENSE.txt (MIT). This is a token adaptation, not the 
 - Change tokens in ui_theme.py; avoid anonymous generated Streamlit CSS class selectors.
 
 GitHub changes intentionally contain UI assets only; local news caches, credentials and generated reports are not synchronized.
+
+## Editorial refinement — 2026-10-17
+
+References: https://www.datawrapper.de/academy/what-to-consider-when-choosing-colors-for-data-visualization ; https://design-system.economist.com/ ; https://github.com/orioncactus/pretendard
+
+Design interpretation (not a copied brand): warm ivory #f5f3ee canvas, ink #252b2e, petrol #234657 navigation, copper #986348 accents. White plotting surfaces, quiet gridlines, category colors reserved for actual series. Pretendard for Korean/Latin consistency; restrained 650 headings and tabular numeric text. Compact current readings replace oversized metric cards.
