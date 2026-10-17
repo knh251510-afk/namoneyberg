@@ -37,10 +37,13 @@ def load_series(spec,fetch_safe):
     if not error and not f.empty and country:f=f[f.country==country]
     return f,meta,error
 
+def persist_selection():
+    st.session_state['comparison_choices']=list(st.session_state.get('comparison_selection',[]))
+
 def render(fetch_safe):
     st.subheader('통합 데이터 비교')
     options=catalog()
-    selected=st.multiselect('비교할 데이터',list(options),default=st.session_state.get('comparison_choices',['미국 / CPI · 전년동월비','미국 / 정책금리']),key='comparison_selection',placeholder='국가·지표·지수·환율 검색')
+    selected=st.multiselect('비교할 데이터',list(options),default=st.session_state.get('comparison_choices',['미국 / CPI · 전년동월비','미국 / 정책금리']),key='comparison_selection',on_change=persist_selection,placeholder='국가·지표·지수·환율 검색')
     left,right=st.columns([2,3])
     mode=left.segmented_control('표시 방식',MODES,default='표준화 · Z-score') or '원래 값'
     dates=right.date_input('비교 기간',(pd.Timestamp('2000-01-01').date(),data.now().date()),min_value=pd.Timestamp('2000-01-01').date(),max_value=data.now().date())
