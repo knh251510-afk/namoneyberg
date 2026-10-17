@@ -105,6 +105,11 @@ def render_page(page,embedded=False):
         data_compare_ui.render(fetch_safe)
         return
 
+    if page=='경제지표':
+        import indicators_ui
+        indicators_ui.render(fetch_safe)
+        return
+
     if page=='세계 요약':
         st.markdown(f'<div class="edition-line"><span>GLOBAL ECONOMY</span><span>{data.now():%Y.%m.%d} · SEOUL</span></div>',unsafe_allow_html=True)
         with st.spinner('공식 통계와 금리를 불러오고 있습니다…'):
@@ -393,7 +398,7 @@ def render_page(page,embedded=False):
         st.caption('PMI, 각국 월간 소매판매·주택·신용 등은 아직 전체 국가에 연결되지 않았습니다. 데이터 공급원 확장 시 추가할 수 있습니다.')
 
 
-PAGE_SPECS=[('세계 요약','마켓 오버뷰','overview'),('물가 · 정책금리','물가·금리','prices'),
+PAGE_SPECS=[('세계 요약','마켓 오버뷰','overview'),('경제지표','경제지표','indicators'),('물가 · 정책금리','물가·금리','prices'),
             ('경기 · 무역 비교','경기·무역','economy'),('시장 · 고빈도 지표','시장지표','markets'),
             ('이번 주 마켓 오버뷰','마켓 오버뷰','weekly'),('뉴스','뉴스','news'),('경제지표 일정','경제지표 일정','calendar'),
             ('시장 시세','시장 시세','quotes'),('데이터 비교','데이터 비교','compare'),('경제 용어','경제 용어','glossary'),('관리자','관리자','admin'),('API 설정','API 설정','settings'),('데이터 안내','데이터 안내','sources')]
@@ -401,13 +406,16 @@ pages=[]
 for original,title,slug in PAGE_SPECS:
     def make_page(name):
         def view():
-            if name=='이번 주 마켓 오버뷰':st.switch_page(pages[0])
+            if name in ('물가 · 정책금리','경기 · 무역 비교','시장 · 고빈도 지표'):
+                st.session_state['indicator_category']={'물가 · 정책금리':'물가·금리','경기 · 무역 비교':'경기·무역','시장 · 고빈도 지표':'시장지표'}[name]
+                st.switch_page(next(p for p in pages if p.url_path=='indicators'))
+            elif name=='이번 주 마켓 오버뷰':st.switch_page(pages[0])
             else:render_page(name)
         return view
     pages.append(st.Page(make_page(original),title=title,url_path=slug,default=slug=='overview'))
 active=st.navigation(pages,position='hidden')
 active_index=next((i for i,p in enumerate(pages) if p.url_path==active.url_path),0)
-public_specs=[spec for spec in PAGE_SPECS if spec[2] not in ('settings','sources','weekly','admin')]
+public_specs=[spec for spec in PAGE_SPECS if spec[2] not in ('settings','sources','weekly','admin','prices','economy','markets')]
 active_spec=PAGE_SPECS[active_index]
 if active_spec in public_specs:
     menu_index=public_specs.index(active_spec)+1
@@ -415,7 +423,7 @@ if active_spec in public_specs:
 
 with nav_slot:
     for spec,nav_page in zip(PAGE_SPECS,pages):
-        if spec[2] not in ('settings','sources','weekly','admin'):
+        if spec[2] not in ('settings','sources','weekly','admin','prices','economy','markets'):
             st.page_link(nav_page,label=spec[1])
 if st.query_params.get('page')=='settings':
     del st.query_params['page']

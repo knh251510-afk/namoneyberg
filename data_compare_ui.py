@@ -22,10 +22,25 @@ def catalog():
 
 from comparison_engine import MODES,prepare,transform
 
+def load_series(spec,fetch_safe):
+    kind,key,country,unit=spec
+    if kind=='market':
+        try:
+            f=market_ui.history(key,'max').rename(columns={'일자':'date','종가':'value'})
+            meta={'url':f'https://finance.yahoo.com/quote/{key}/'};error=None
+        except Exception:f=pd.DataFrame();meta={};error='조회 실패'
+    elif kind=='ecos_current_account':
+        import api_settings
+        try:f,meta=data.korea_current_account(api_settings.read_key('ECOS') or '');error=None
+        except Exception:f=pd.DataFrame();meta={};error='자료 없음'
+    else:f,meta,error=fetch_safe(kind,key)
+    if not error and not f.empty and country:f=f[f.country==country]
+    return f,meta,error
+
 def render(fetch_safe):
     st.subheader('통합 데이터 비교')
     options=catalog()
-    selected=st.multiselect('비교할 데이터',list(options),default=['미국 / CPI · 전년동월비','미국 / 정책금리'],placeholder='국가·지표·지수·환율 검색')
+    selected=st.multiselect('비교할 데이터',list(options),default=st.session_state.get('comparison_choices',['미국 / CPI · 전년동월비','미국 / 정책금리']),key='comparison_selection',placeholder='국가·지표·지수·환율 검색')
     left,right=st.columns([2,3])
     mode=left.segmented_control('표시 방식',MODES,default='표준화 · Z-score') or '원래 값'
     dates=right.date_input('비교 기간',(pd.Timestamp('2000-01-01').date(),data.now().date()),min_value=pd.Timestamp('2000-01-01').date(),max_value=data.now().date())
@@ -40,17 +55,8 @@ def render(fetch_safe):
     with st.spinner('선택한 데이터를 불러오고 있습니다…'):
         for name in selected:
             kind,key,country,unit=options[name]
-            if kind=='market':
-                try:
-                    f=market_ui.history(key,'max').rename(columns={'일자':'date','종가':'value'});meta={'url':f'https://finance.yahoo.com/quote/{key}/'};error=None
-                except Exception:f=pd.DataFrame();meta={};error='조회 실패'
-            elif kind=='ecos_current_account':
-                import api_settings
-                try:f,meta=data.korea_current_account(api_settings.read_key('ECOS') or '');error=None
-                except Exception:f=pd.DataFrame();meta={};error='자료 없음'
-            else:f,meta,error=fetch_safe(kind,key)
+            f,meta,error=load_series(options[name],fetch_safe)
             if error or f.empty:st.warning(name+' · 자료 없음');continue
-            if country:f=f[f.country==country]
             f=f[['date','value']].dropna().copy();f['date']=pd.to_datetime(f.date)
             f=f[f.date.between(pd.Timestamp(start),pd.Timestamp(end))]
             if f.empty:st.warning(name+' · 선택 기간에 자료 없음');continue
