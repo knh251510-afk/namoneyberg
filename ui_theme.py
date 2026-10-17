@@ -24,13 +24,13 @@ html,body,.stApp{font-family:Pretendard,-apple-system,BlinkMacSystemFont,sans-se
 .st-key-site_header{border-bottom:1px solid var(--nb-border);padding:8px 0 12px;margin-bottom:0}
 .brand-head{display:flex;align-items:center;padding:0;min-height:48px}
 .brand-name,.brand-name b{font-size:20px;font-weight:600;color:var(--nb-primary);letter-spacing:-.6px;white-space:nowrap}
-.st-key-main_navigation{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;gap:0 22px!important;padding:0!important;background:#fff;border:0;margin:0!important}
+.st-key-main_navigation{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;gap:0 30px!important;padding:0!important;background:#fff;border:0;margin:0!important}
 .st-key-main_navigation [data-testid="stElementContainer"]{width:auto!important;flex:0 0 auto!important}
 .st-key-main_navigation a{border-radius:0!important;white-space:nowrap;padding:12px 0!important;background:transparent!important;border:0!important;border-bottom:2px solid transparent!important;color:#333!important;text-decoration:none!important}
-.st-key-main_navigation a p{font-size:14px;line-height:24px;font-weight:500;margin:0}
+.st-key-main_navigation a p{font-size:15px;line-height:24px;font-weight:600;margin:0}
 .st-key-main_navigation a:hover{color:var(--nb-accent)!important}
 a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #8bafdb!important;outline-offset:3px}
-.st-key-page_body{padding:12px 0 32px}
+.st-key-page_body{max-width:1040px;margin-inline:auto;padding:16px 32px 88px;width:100%}
 .quote-ticker{overflow:hidden;border-bottom:1px solid var(--nb-border);background:#fff;border-radius:0;margin:0 0 24px}
 .quote-ticker .quote-item{flex-direction:row;align-items:center;gap:12px;min-width:260px;padding:14px 24px;border-right:0}
 .quote-ticker .quote-item>span{font-size:12px;font-weight:500;color:#555}
@@ -101,7 +101,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #8b
 .news-list-item small{display:block;font-size:12px;color:var(--nb-muted);margin-top:8px}
 .news-headline a,.news-list-item a{color:var(--nb-primary)!important;text-decoration:none}
 .news-headline a:hover,.news-list-item a:hover{text-decoration:underline}
-.terminal-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-top:32px;padding:24px 16px;border-top:1px solid var(--nb-border)}
+.terminal-footer{position:fixed;bottom:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px max(24px,calc((100vw - 1000px)/2));margin:0;background:#fff;border-top:1px solid var(--nb-border);min-height:44px}
 .terminal-footer b{color:var(--nb-primary);font-size:14px}.terminal-footer nav{display:flex;gap:24px}.terminal-footer a{font-size:12px;color:var(--nb-muted)!important;text-decoration:none}
 .st-key-comparison_tray{background:var(--nb-surface);border:1px solid var(--nb-border);padding:16px!important;border-radius:8px;margin:8px 0 24px}.st-key-comparison_tray [data-testid="stCaptionContainer"] p{font-size:12px;line-height:16px}
 /* Preserve BaseWeb geometry: never style anonymous inner divs globally. */
@@ -132,8 +132,8 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #8b
 .brief-topic{padding:24px 0 28px;margin:0 0 16px;border-bottom:1px solid var(--nb-border)}
 .brief-topic:last-child{margin-bottom:0;border-bottom:0}
 .brief-topic h4{font-size:19px!important;font-weight:600!important;line-height:1.55!important;margin:0 0 20px;padding:0;color:#292929}
-.brief-topic dl{display:grid;grid-template-columns:80px 1fr;gap:12px 16px;margin:0;font-size:15px;line-height:1.85}
-.brief-topic dt{font-size:12px;font-weight:500;color:#777;padding-top:2px}.brief-topic dd{margin:0;color:var(--nb-text);word-break:keep-all;overflow-wrap:anywhere}
+.brief-topic dl{display:grid;grid-template-columns:96px 1fr;gap:12px 16px;margin:0;font-size:15px;line-height:1.85}
+.brief-topic dt{font-size:14px;font-weight:600;color:#333;padding-top:2px}.brief-topic dd{margin:0;color:var(--nb-text);word-break:keep-all;overflow-wrap:anywhere}
 .brief-sources{margin-top:16px;font-size:12px;color:var(--nb-muted)}.brief-sources summary{cursor:pointer;padding:4px 0}
 .brief-sources a{display:block;font-size:12px;color:var(--nb-muted)!important;line-height:1.7;margin:8px 0}
 .brief-layout{display:grid;grid-template-columns:180px minmax(0,1fr);gap:24px;align-items:start;margin-top:16px}
@@ -144,6 +144,22 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #8b
 @media(max-width:800px){.st-key-site_header [data-testid="stHorizontalBlock"]{flex-wrap:wrap}.st-key-site_header [data-testid="stColumn"]{width:100%!important;flex:1 1 100%!important}.brand-head{min-height:36px}.st-key-main_navigation{gap:0 18px!important}.quote-ticker .quote-item{padding:12px 16px;min-width:240px}.brief-lead{grid-template-columns:1fr;gap:16px;padding:24px 0}.brief-lead h3{font-size:22px!important}[data-testid="stMainBlockContainer"]{padding:24px 16px}.st-key-main_navigation{gap:0 16px!important}.st-key-main_navigation a p{font-size:13px}.st-key-page_body{padding:8px 8px 16px}.brand-name,.brand-name b{font-size:24px}.brief-topic dl{grid-template-columns:1fr;gap:4px}.brief-topic dd{margin-bottom:12px}.research-grid{grid-template-columns:1fr}.brief-layout{grid-template-columns:1fr}.brief-art{width:180px}}
 @media(max-width:480px){[data-testid="stMainBlockContainer"]{padding:16px 12px}.st-key-page_body{padding:8px 0 16px}.st-key-global_brief_panel{padding:16px!important}.quote-grid{grid-template-columns:1fr}.glossary-item{padding:16px}.glossary-title{flex-wrap:wrap}.section-heading h2{font-size:20px!important}}
 @media(prefers-reduced-motion:reduce){.quote-track{animation:none}.quote-ticker{overflow-x:auto}}
+
+.brief-metadata{font-size:11px!important;line-height:16px!important;color:#777;margin:0}
+.st-key-brief_downloads{margin:12px 0 20px}
+.st-key-brief_downloads [data-testid="stDownloadButton"] button{min-height:30px!important;padding:4px 10px!important;font-size:11px!important;white-space:nowrap}
+.st-key-brief_downloads [data-testid="stDownloadButton"] button p{font-size:11px!important;line-height:16px!important}
+[class*="st-key-brief_category_"] button{height:150px!important;border-radius:8px!important;background-size:cover!important;background-position:center!important;display:flex!important;align-items:flex-end!important;justify-content:flex-start!important;padding:16px!important;border:1px solid #ddd!important;box-shadow:none!important}
+[class*="st-key-brief_category_"] button p{font-size:16px!important;font-weight:600!important;color:#202c3b!important;background:rgba(255,255,255,.92);padding:5px 10px;border-radius:3px}
+[class*="st-key-brief_category_"] button:hover{border-color:#806751!important;box-shadow:0 0 0 1px #806751!important}
+.st-key-brief_category_macro button{background-image:url("/app/static/brief-macro.png")!important}
+.st-key-brief_category_global button{background-image:url("/app/static/brief-global.png")!important}
+.st-key-brief_category_industry button{background-image:url("/app/static/brief-industry.png")!important}
+@media(max-width:800px){.st-key-page_body{padding:12px 16px 80px}[class*="st-key-brief_category_"] button{height:115px!important;padding:8px!important}[class*="st-key-brief_category_"] button p{font-size:13px!important}.st-key-brief_downloads [data-testid="stHorizontalBlock"]{flex-wrap:nowrap}.st-key-brief_downloads [data-testid="stColumn"]{min-width:0!important;flex:1 1 auto!important}.st-key-main_navigation{gap:0 22px!important}}
+.st-key-brief_generation [data-testid="stButton"]{display:flex;justify-content:flex-end}
+.st-key-brief_generation button{min-height:32px!important;padding:5px 12px!important;border:1px solid #d8d1c9!important;border-radius:5px!important;color:#705945!important;background:#fff!important;gap:6px}
+.st-key-brief_generation button p{font-size:12px!important;font-weight:500!important;line-height:18px!important}
+.st-key-brief_generation button:hover{background:#f7f4ef!important;border-color:#9b8067!important}
 </style>""",unsafe_allow_html=True)
     def portal():
         return {'config':{'background':'#fff','font':'Pretendard','view':{'stroke':None},'range':{'category':PALETTE},'axis':{'labelColor':'#596469','titleColor':'#234657','gridColor':'#ecece6','domainColor':'#ccd6e3','labelFont':'Pretendard','titleFont':'Pretendard'},'legend':{'labelColor':'#596469','labelFont':'Pretendard','titleFont':'Pretendard'},'title':{'color':'#345780','font':'Pretendard'}}}

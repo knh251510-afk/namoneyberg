@@ -7,7 +7,8 @@ import admin_auth
 
 def request_generation(has_articles):
     admin=admin_auth.is_admin()
-    clicked=st.button('브리핑 생성 · 최신화',type='primary',disabled=admin and not has_articles,key='generate_market_brief')
+    with st.container(key='brief_generation'):
+        clicked=st.button('브리핑 생성 · 최신화',icon=':material/refresh:',disabled=admin and not has_articles,key='generate_market_brief')
     if not clicked:return False
     if not admin_auth.is_admin():
         st.toast('관리자만 사용할 수 있습니다.',icon='🔒')
