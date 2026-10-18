@@ -16,6 +16,7 @@ import chart_ui
 import admin_auth
 import briefing_controls
 import briefing_ui
+import briefing_store
 
 st.set_page_config(page_title='NAMONEYBERG',page_icon='🌐',layout='wide')
 ui_theme.apply()
@@ -221,7 +222,6 @@ def render_page(page,embedded=False):
     elif page in ('이번 주 마켓 오버뷰','LOE 위클리'):
         start,end=data.week_bounds()
         st.markdown('<div id="weekly-review" class="section-heading"><div><h2>이번 주 마켓 오버뷰</h2></div></div>',unsafe_allow_html=True)
-        st.caption(f'{start:%Y-%m-%d %H:%M} ~ {end:%Y-%m-%d %H:%M} · 한국시간 · 월요일 시작')
         refresh=False
         articles=[];statuses=[]
         if admin_auth.is_admin():
@@ -295,38 +295,38 @@ def render_page(page,embedded=False):
             try:
                 key=settings.read_key('OpenAI')
                 model=settings.model_name()
-                if not key:st.warning('API 설정 탭에서 OpenAI 키를 한 번 저장해주세요.')
+                if not key:raise ValueError('생성 서비스가 설정되지 않았습니다. 관리자에게 문의해주세요.')
                 else:
                     with st.spinner('뉴스 근거를 종합하고 해석을 작성하고 있습니다…'):
                         from macro_ai import overview
-                        jobs=[('cpi',''),('wb','gdp'),('wb','unemployment')]
-                        with ThreadPoolExecutor(max_workers=3) as pool:
-                            snapshots=list(pool.map(lambda job:fetch_safe(*job)[0].tail(60).to_dict('records'),jobs))
-                        st.session_state['annual_snapshot']=json.dumps(snapshots,default=str,ensure_ascii=False)
-                        context={'markets':st.session_state.get('weekly_markets',[]),'releases':st.session_state.get('release_snapshot',[]),'annual_data':st.session_state.get('annual_snapshot','미조회')}
+                        from briefing_context import build
+                        context=build(fetch_safe,data.weekly_markets)
                         report=overview(key,model,articles,context)
                         report['data_snapshot']=context
                         report['generated_at']=data.now().isoformat()
-                        st.session_state['weekly_report']=report
-                        folder=Path(__file__).resolve().parent/'macro_reports';folder.mkdir(exist_ok=True)
-                        (folder/f'overview_{data.now():%Y%m%d_%H%M%S}.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+                        st.session_state['briefing_draft']=report
             except Exception as error:
                 from openai import APIStatusError
                 if isinstance(error,APIStatusError):st.error(f'OpenAI 오류: HTTP {error.status_code} / {error.code or "미상"}')
                 elif isinstance(error,ValueError):st.error(str(error))
                 else:st.error('AI 요약 연결에 실패했습니다. 키·모델 접근 권한·네트워크를 확인해주세요.')
-        saved=st.session_state.get('weekly_report')
-        if not saved:
-            folder=Path(__file__).resolve().parent/'macro_reports'
-            for path in sorted(folder.glob('overview_*.json'),reverse=True):
-                try:
-                    candidate=json.loads(path.read_text())
-                    if candidate['period']['start']==start.isoformat():
-                        saved=candidate;st.session_state['weekly_report']=saved;break
-                except (ValueError,KeyError,OSError):continue
+        import briefing_editor
+        briefing_editor.render()
+        try:briefing_store.sync_remote()
+        except Exception:
+            if admin_auth.is_admin():st.caption('저장소 동기화에 실패해 이전 게시본을 표시합니다.')
+        reports=briefing_store.archive()
+        saved=reports[0] if reports else None
+        if len(reports)>1:
+            chosen=st.selectbox('지난 브리핑',range(len(reports)),format_func=lambda i:reports[i].get('period',{}).get('start','')[:10]+' · '+reports[i]['report']['headline'])
+            saved=reports[chosen]
+        if saved and saved.get('period',{}).get('start','')[:10]!=start.date().isoformat():
+            briefing_ui.metadata('이전 게시 브리핑')
         briefing_ui.metadata(briefing_controls.updated_label(saved))
-        if saved and saved['period']['start']==start.isoformat():
-            briefing_ui.metadata('브리핑 기준 '+saved['period']['start'][:10]+' ~ '+saved['period'].get('end','')[:10])
+        if saved:
+            st.session_state['weekly_report']=saved
+            report_period=saved.get('period',{})
+            briefing_ui.metadata('브리핑 기준 '+report_period.get('start','')[:10]+' ~ '+report_period.get('end','')[:10])
             r=saved['report']
             from html import escape
             st.markdown('<div class="brief-lead"><h3>'+escape(r['headline'])+'</h3><p>'+escape(r['summary'])+'</p></div>',unsafe_allow_html=True)
@@ -337,9 +337,12 @@ def render_page(page,embedded=False):
             blocks=[]
             for theme in themes:
                  sources=''.join('<a href="'+escape(item['url'],quote=True)+'" target="_blank" rel="noopener noreferrer">'+escape(item['source']+' · '+item['title'])+' ↗</a>' for item in theme['sources'])
-                 blocks.append('<article class="brief-topic"><h4>'+escape(theme['title'])+'</h4><dl><dt>종합 흐름</dt><dd>'+escape(theme['facts'])+'</dd><dt>시장 의미</dt><dd>'+escape(theme['interpretation'])+'</dd><dt>확인할 변수</dt><dd>'+escape(theme['watch'])+'</dd></dl><details class="brief-sources"><summary>출처 '+str(len(theme['sources']))+'건</summary>'+sources+'</details></article>')
+                 comparison_html=('<dt>보도 비교</dt><dd>'+escape(theme['comparison'])+'</dd>') if theme.get('comparison') else ''
+                 blocks.append('<article class="brief-topic"><h4>'+escape(theme['title'])+'</h4><dl><dt>종합 흐름</dt><dd>'+escape(theme['facts'])+'</dd><dt>시장 의미</dt><dd>'+escape(theme['interpretation'])+'</dd><dt>확인할 변수</dt><dd>'+escape(theme['watch'])+'</dd>'+comparison_html+'</dl><details class="brief-sources"><summary>출처 '+str(len(theme['sources']))+'건</summary>'+sources+'</details></article>')
             st.markdown('<div class="brief-topics">'+''.join(blocks)+'</div>',unsafe_allow_html=True)
             briefing_ui.downloads(saved,start)
+        else:
+            st.info('아직 게시된 브리핑이 없습니다.')
     elif page=='뉴스':
         from html import escape
         st.subheader('뉴스')
@@ -362,7 +365,8 @@ def render_page(page,embedded=False):
     elif page=='관리자':
         if not admin_auth.require_admin():return
         st.success('관리자로 로그인했습니다.')
-        st.markdown('[브리핑 관리](/overview) · [API 설정](/settings)')
+        st.page_link(next(p for p in pages if p.url_path=='overview'),label='브리핑 관리')
+        st.page_link(next(p for p in pages if p.url_path=='settings'),label='API 설정')
         if st.button('로그아웃'):admin_auth.logout()
 
     elif page=='API 설정':
