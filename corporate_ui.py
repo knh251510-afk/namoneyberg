@@ -15,10 +15,20 @@ def render():
         st.info('관리자가 DART 인증키를 등록하면 기업 재무제표와 공시를 조회할 수 있습니다.')
         st.markdown('[관리자 API 설정](/settings) · [DART 키 발급](https://opendart.fss.or.kr/)');return
     try:
-        companies=src.dart_companies(key)
-        query=st.text_input('기업명 또는 종목코드',placeholder='예: 삼성전자 또는 005930')
-        matched=[c for c in companies if query.strip() and (query.strip() in c['name'] or query.strip() in c['stock_code'])][:100]
-        if not matched:st.info('기업명 또는 6자리 종목코드를 입력해주세요.');return
+        with st.form('company_search'):
+            query=st.text_input('기업명 또는 종목코드',placeholder='예: 삼성전자 또는 005930')
+            searched=st.form_submit_button('기업 검색',type='primary')
+        if searched:
+            st.session_state.pop('corporate_matches',None)
+            if not query.strip():st.info('기업명 또는 종목코드를 입력해주세요.');return
+            with st.spinner('DART 기업 목록에서 검색 중…'):
+                companies=src.dart_companies(key)
+            matched=[c for c in companies if query.strip().casefold() in c['name'].casefold() or query.strip() in c['stock_code']][:100]
+            st.session_state['corporate_matches']=matched
+        matched=st.session_state.get('corporate_matches',[])
+        if not matched:
+            if searched:st.info('검색 결과가 없습니다. 기업명 또는 6자리 종목코드를 확인해주세요.')
+            return
         selected=st.selectbox('기업 선택',range(len(matched)),format_func=lambda i:matched[i]['name']+' · '+matched[i]['stock_code'])
         company=matched[selected]
         a,b,c=st.columns(3)
@@ -28,17 +38,29 @@ def render():
         if st.button('재무분석 조회',type='primary'):
             frames=[];warnings=[];raw={}
             with st.spinner('DART 재무제표와 공시 조회 중…'):
-                for y in range(max(2015,year-span),year+1):
-                    rows=src.dart_statement(company['corp_code'],int(y),basis,key);raw[y]=rows
+                from concurrent.futures import ThreadPoolExecutor
+                years_to_fetch=list(range(max(2015,year-span),year+1))
+                def fetch_year(y):
+                    try:return y,src.dart_statement(company['corp_code'],int(y),basis,key),None
+                    except src.SourceError as exc:return y,[],str(exc)
+                with ThreadPoolExecutor(max_workers=3) as pool:
+                    fetched=list(pool.map(fetch_year,years_to_fetch))
+                for y,rows,error in fetched:
+                    raw[y]=rows
+                    if error:warnings.append(str(y)+'년: '+error);continue
                     if not rows:warnings.append(str(y)+'년 자료 없음');continue
                     values=src.extract_financials(rows);frames.append({'연도':y,**values})
                     if values['누락·모호']:warnings.append(str(y)+'년 확인 필요: '+', '.join(values['누락·모호']))
-                notices=src.dart_disclosures(company['corp_code'],(date.today()-timedelta(days=365)).strftime('%Y%m%d'),date.today().strftime('%Y%m%d'),key)
+                try:notices=src.dart_disclosures(company['corp_code'],(date.today()-timedelta(days=365)).strftime('%Y%m%d'),date.today().strftime('%Y%m%d'),key)
+                except src.SourceError as exc:notices=[];warnings.append('최근 공시: '+str(exc))
             st.session_state['corporate_result']={'identity':(company['corp_code'],int(year),basis,span),'company':company,'rows':frames,'raw':raw,'notices':notices,'warnings':warnings}
         saved=st.session_state.get('corporate_result')
         if not saved or saved['identity']!=(company['corp_code'],int(year),basis,span):return
         financials=pd.DataFrame(saved['rows'])
-        if financials.empty:st.info('선택한 기준의 연간 재무제표가 없습니다. 연도나 연결·별도를 변경해주세요.');return
+        if financials.empty:
+            st.info('선택한 기준의 연간 재무제표를 가져오지 못했습니다.')
+            for note in saved['warnings']:st.caption(note)
+            return
         financials=financials.sort_values('연도');latest=financials[financials.연도==year]
         if latest.empty:st.warning('선택 연도 자료가 없습니다. 과거 자료만 표시합니다.')
         st.caption(company['name']+' · '+('연결' if basis=='CFS' else '별도')+' · 연간 사업보고서 · 금액 KRW, 표시 단위 억 원')

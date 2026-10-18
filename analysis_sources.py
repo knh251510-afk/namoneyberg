@@ -15,7 +15,7 @@ def request_json(base,params):
         status=payload.get('status')
         if status and status!='000':
             if status=='013':return []
-            raise SourceError('DART 응답 상태 '+str(status))
+            raise SourceError(DART_ERRORS.get(status,'DART 응답 상태 '+str(status)))
         if payload.get('err') or payload.get('errCd'):raise SourceError('KOSIS 요청이 거절됐습니다. 키·통계표·분류 조건을 확인해주세요.')
     return payload
 
@@ -62,14 +62,36 @@ def summary(frame):
     pct=None if prev is None or prev.value<=0 else delta/prev.value*100
     return {'latest':float(last.value),'date':last.date,'previous':None if prev is None else float(prev.value),'delta':delta,'pct':pct,'high':f.loc[f.value.idxmax()].to_dict(),'low':f.loc[f.value.idxmin()].to_dict()}
 
+DART_ERRORS={
+ '010':'DART 인증키가 유효하지 않습니다. 관리자 API 설정을 확인해주세요.',
+ '011':'DART 인증키를 사용할 수 없습니다. 키 사용 상태를 확인해주세요.',
+ '012':'DART 허용 IP 설정과 공개 서버의 접속 IP를 확인해주세요.',
+ '020':'DART 요청 한도를 초과했습니다. 잠시 후 다시 조회해주세요.',
+ '800':'DART 서비스 점검 중입니다. 잠시 후 다시 조회해주세요.',
+}
+
+def parse_dart_companies(content):
+    if not zipfile.is_zipfile(io.BytesIO(content)):
+        try:
+            response=ET.fromstring(content)
+            status=response.findtext('status')
+        except ET.ParseError:status=None
+        raise SourceError(DART_ERRORS.get(status,'DART 기업 목록 응답 형식을 확인할 수 없습니다. 공급원 연결 상태를 확인해주세요.'))
+    try:
+        with zipfile.ZipFile(io.BytesIO(content)) as z:
+            name=next(n for n in z.namelist() if n.lower().endswith('.xml'))
+            root=ET.fromstring(z.read(name))
+    except (zipfile.BadZipFile,ET.ParseError,StopIteration):
+        raise SourceError('DART 기업 목록 파일을 해석하지 못했습니다.') from None
+    return [{'name':e.findtext('corp_name') or '', 'corp_code':e.findtext('corp_code'),'stock_code':e.findtext('stock_code')} for e in root.findall('list') if re.fullmatch(r'\d{6}',e.findtext('stock_code') or '')]
+
 @st.cache_data(ttl=86400,show_spinner=False)
 def dart_companies(_key):
     try:
-        r=httpx.get('https://opendart.fss.or.kr/api/corpCode.xml',params={'crtfc_key':_key},timeout=60);r.raise_for_status()
-        with zipfile.ZipFile(io.BytesIO(r.content)) as z:
-            name=next(n for n in z.namelist() if n.lower().endswith('.xml'));root=ET.fromstring(z.read(name))
-    except (httpx.HTTPError,zipfile.BadZipFile,ET.ParseError,StopIteration):raise SourceError('DART 기업 목록을 불러오지 못했습니다. 인증키를 확인해주세요.') from None
-    return [{'name':e.findtext('corp_name'),'corp_code':e.findtext('corp_code'),'stock_code':e.findtext('stock_code')} for e in root.findall('list') if re.fullmatch(r'\d{6}',e.findtext('stock_code') or '')]
+        r=httpx.get('https://opendart.fss.or.kr/api/corpCode.xml',params={'crtfc_key':_key},timeout=httpx.Timeout(20,connect=5));r.raise_for_status()
+    except httpx.TimeoutException:raise SourceError('DART 기업 목록 응답이 지연되고 있습니다. 다시 검색해주세요.') from None
+    except httpx.HTTPError:raise SourceError('DART 기업 목록 서버에 연결하지 못했습니다. 공급원 상태를 확인해주세요.') from None
+    return parse_dart_companies(r.content)
 
 @st.cache_data(ttl=21600,show_spinner=False)
 def dart_statement(corp,year,basis,_key):
