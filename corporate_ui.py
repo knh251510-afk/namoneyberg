@@ -29,7 +29,7 @@ def render():
         basis=b.selectbox('재무제표',['CFS','OFS'],format_func=lambda x:'연결' if x=='CFS' else '별도')
         span=c.selectbox('비교 연수',[3,5],index=0)
         if st.button('재무분석 조회',type='primary'):
-            frames=[];warnings=[];raw={}
+            frames=[];warnings=[];raw={};origins={}
             with st.spinner('DART 재무제표와 공시 조회 중…'):
                 progress=st.empty()
                 progress.caption('기업 고유번호 확인 중…')
@@ -37,8 +37,10 @@ def render():
                 from concurrent.futures import ThreadPoolExecutor, as_completed
                 years_to_fetch=list(range(max(2015,year-span),year+1))
                 def fetch_year(y):
-                    try:return y,src.dart_statement(company['corp_code'],int(y),basis,key),None
-                    except src.SourceError as exc:return y,[],str(exc)
+                    try:
+                        rows,origin=src.dart_statement_with_meta(company['corp_code'],int(y),basis,key)
+                        return y,rows,None,origin
+                    except src.SourceError as exc:return y,[],str(exc),{}
                 fetched=[]
                 with ThreadPoolExecutor(max_workers=4) as pool:
                     pending=[pool.submit(fetch_year,y) for y in years_to_fetch]
@@ -46,14 +48,15 @@ def render():
                         fetched.append(future.result())
                         progress.caption(f'연간 재무제표 {len(fetched)}/{len(years_to_fetch)}개 확인')
                 progress.empty()
-                for y,rows,error in fetched:
+                for y,rows,error,origin in fetched:
+                    origins[y]=origin
                     raw[y]=rows
                     if error:warnings.append(str(y)+'년: '+error);continue
                     if not rows:warnings.append(str(y)+'년 자료 없음');continue
                     values=src.extract_financials(rows);frames.append({'연도':y,**values})
                     if values['누락·모호']:warnings.append(str(y)+'년 확인 필요: '+', '.join(values['누락·모호']))
                 notices=[]
-            st.session_state['corporate_result']={'identity':(company['stock_code'],int(year),basis,span),'company':company,'rows':frames,'raw':raw,'notices':notices,'warnings':warnings}
+            st.session_state['corporate_result']={'identity':(company['stock_code'],int(year),basis,span),'company':company,'rows':frames,'raw':raw,'notices':notices,'warnings':warnings,'origins':origins}
         saved=st.session_state.get('corporate_result')
         if not saved:return
         if saved['identity']!=(company['stock_code'],int(year),basis,span):
@@ -67,6 +70,10 @@ def render():
         financials=financials.sort_values('연도');latest=financials[financials.연도==year]
         if latest.empty:st.warning('선택 연도 자료가 없습니다. 과거 자료만 표시합니다.')
         st.caption(company['name']+' · '+('연결' if basis=='CFS' else '별도')+' · 연간 사업보고서 · 금액 KRW, 표시 단위 억 원')
+        saved_origins={y:origin for y,origin in saved.get('origins',{}).items() if origin.get('saved')}
+        if saved_origins:
+            dates=[origin['retrieved_at'] for origin in saved_origins.values()]
+            st.info('DART 저장 자료를 표시합니다. 마지막 수집: '+max(dates).replace('T',' ')+' · 미수집 연도는 —로 표시합니다.')
         years=list(range(int(year)-span+1,int(year)+1))
         st.download_button('엑셀 다운로드',model.export_xlsx(saved,years,basis),
                            file_name=company['stock_code']+'_fundamentals_'+basis+'.xlsx',

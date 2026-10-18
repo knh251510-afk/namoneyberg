@@ -9,9 +9,9 @@ import streamlit as st
 
 class SourceError(ValueError):pass
 
-def request_json(base,params):
+def request_json(base,params,timeout=25):
     try:
-        r=httpx.get(base,params=params,timeout=httpx.Timeout(25,connect=5));r.raise_for_status();payload=r.json()
+        r=httpx.get(base,params=params,timeout=httpx.Timeout(timeout,connect=5));r.raise_for_status();payload=r.json()
     except httpx.TimeoutException:raise SourceError('데이터 공급원의 응답이 지연되고 있습니다. 잠시 후 다시 조회해주세요.') from None
     except (httpx.HTTPError,ValueError):raise SourceError('데이터 공급원 연결에 실패했습니다. 인증·서비스 상태를 확인해주세요.') from None
     if isinstance(payload,dict):
@@ -151,10 +151,24 @@ def resolve_dart_company(stock_code, key):
         raise SourceError('DART에서 선택한 기업의 고유번호를 찾지 못했습니다.')
     return company
 
-@st.cache_data(ttl=21600,show_spinner=False)
+@st.cache_data(ttl=300,show_spinner=False)
+def dart_statement_with_meta(corp,year,basis,_key):
+    from dart_storage import read_snapshot,write_snapshot,CACHE
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    saved=read_snapshot(corp,year,basis)
+    if saved:return saved['rows'],{'saved':True,'retrieved_at':saved['retrieved_at']}
+    result=request_json('https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json',{'crtfc_key':_key,'corp_code':corp,'bsns_year':year,'reprt_code':'11011','fs_div':basis},timeout=8)
+    rows=result.get('list',[]) if isinstance(result,dict) else []
+    retrieved_at=datetime.now(ZoneInfo('Asia/Seoul')).isoformat(timespec='seconds')
+    if rows:
+        try:write_snapshot(CACHE,corp,year,basis,rows,retrieved_at)
+        except OSError:pass
+    return rows,{'saved':False,'retrieved_at':retrieved_at}
+
+
 def dart_statement(corp,year,basis,_key):
-    result=request_json('https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json',{'crtfc_key':_key,'corp_code':corp,'bsns_year':year,'reprt_code':'11011','fs_div':basis})
-    return result.get('list',[]) if isinstance(result,dict) else []
+    return dart_statement_with_meta(corp,year,basis,_key)[0]
 
 @st.cache_data(ttl=3600,show_spinner=False)
 def dart_disclosures(corp,start,end,_key):
