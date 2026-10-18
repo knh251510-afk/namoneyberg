@@ -118,9 +118,7 @@ def render_page(page,embedded=False):
     if page=='세계 요약':
         st.markdown(f'<div class="edition-line"><span>주요국 정책금리</span><span>{data.now():%Y.%m.%d} 기준</span></div>',unsafe_allow_html=True)
         with st.spinner('공식 통계와 금리를 불러오고 있습니다…'):
-            jobs=[('cpi',''),('wb','gdp'),('wb','unemployment'),('policy','')]
-            with ThreadPoolExecutor(max_workers=4) as pool:
-                results=list(pool.map(lambda job:fetch_safe(*job),jobs))
+            results=[(pd.DataFrame(),{},None)]*3+[fetch_safe('policy','')]
         table=pd.DataFrame({'country':list(data.COUNTRIES)})
         titles=['CPI · 전년동월 %','GDP 성장 · 연간 %','실업률 · 연간 %','정책금리 · %']
         for title,(frame,meta,error) in zip(titles,results):
@@ -297,6 +295,10 @@ def render_page(page,embedded=False):
                 else:
                     with st.spinner('뉴스 근거를 종합하고 해석을 작성하고 있습니다…'):
                         from macro_ai import overview
+                        jobs=[('cpi',''),('wb','gdp'),('wb','unemployment')]
+                        with ThreadPoolExecutor(max_workers=3) as pool:
+                            snapshots=list(pool.map(lambda job:fetch_safe(*job)[0].tail(60).to_dict('records'),jobs))
+                        st.session_state['annual_snapshot']=json.dumps(snapshots,default=str,ensure_ascii=False)
                         context={'markets':st.session_state.get('weekly_markets',[]),'releases':st.session_state.get('release_snapshot',[]),'annual_data':st.session_state.get('annual_snapshot','미조회')}
                         report=overview(key,model,articles,context)
                         report['data_snapshot']=context
@@ -406,10 +408,7 @@ def render_page(page,embedded=False):
         st.caption('PMI, 각국 월간 소매판매·주택·신용 등은 아직 전체 국가에 연결되지 않았습니다. 데이터 공급원 확장 시 추가할 수 있습니다.')
 
 
-PAGE_SPECS=[('시작 화면','홈','home'),('세계 요약','마켓 오버뷰','overview'),('경제지표','경제지표','indicators'),('통계 데이터','통계 데이터','statistics'),('물가 · 정책금리','물가·금리','prices'),
-            ('경기 · 무역 비교','경기·무역','economy'),('시장 · 고빈도 지표','시장지표','markets'),
-            ('이번 주 마켓 오버뷰','마켓 오버뷰','weekly'),('뉴스','뉴스','news'),('경제지표 일정','경제지표 일정','calendar'),
-            ('시장 시세','시장 시세','quotes'),('데이터 비교','데이터 비교','compare'),('경제 용어','경제 용어','glossary'),('관리자','관리자','admin'),('API 설정','API 설정','settings'),('데이터 안내','데이터 안내','sources')]
+PAGE_SPECS=[('시작 화면', '홈', 'home'), ('세계 요약', '마켓 오버뷰', 'overview'), ('뉴스', '뉴스', 'news'), ('경제지표', '경제지표', 'indicators'), ('통계 데이터', '국가 통계', 'statistics'), ('시장 시세', '시장 시세', 'quotes'), ('데이터 비교', '데이터 비교', 'compare'), ('경제지표 일정', '발표 일정', 'calendar'), ('경제 용어', '경제 용어', 'glossary'), ('물가 · 정책금리', '물가·금리', 'prices'), ('경기 · 무역 비교', '경기·무역', 'economy'), ('시장 · 고빈도 지표', '시장지표', 'markets'), ('이번 주 마켓 오버뷰', '마켓 오버뷰', 'weekly'), ('관리자', '관리자', 'admin'), ('API 설정', 'API 설정', 'settings'), ('데이터 안내', '데이터 안내', 'sources')]
 pages=[]
 for original,title,slug in PAGE_SPECS:
     def make_page(name):

@@ -94,3 +94,11 @@
 .st-key-footer_navigation [data-testid="stHorizontalBlock"]{gap:20px!important;flex-wrap:nowrap!important}
 .st-key-footer_navigation [data-testid="stColumn"]{min-width:70px!important}
 @media(max-width:700px){.st-key-site_header .brand-head{transform:translateY(-3px)}.st-key-footer_navigation{padding:10px 16px!important}}
+/* Compact screens keep navigation on one scrollable row, never overflow body. */
+@media(max-width:700px){
+ .st-key-site_header [data-testid="stColumn"]{min-width:0!important;max-width:100%!important}
+ .st-key-main_navigation{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden;max-width:100%;gap:4px!important;padding:4px 0 8px!important;scrollbar-width:thin;overscroll-behavior-x:contain}
+ .st-key-main_navigation [data-testid="stElementContainer"]{flex:0 0 auto!important;min-width:max-content!important}
+ .st-key-main_navigation a{min-height:44px;display:flex;align-items:center}
+}
+.st-key-main_navigation a:focus-visible,.brand-name:focus-visible{outline:2px solid var(--seed-color-palette-carrot-800)!important;outline-offset:3px!important}
