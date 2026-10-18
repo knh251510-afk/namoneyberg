@@ -413,3 +413,5 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 .calendar-table-wrap:has(.cal-event-name:hover),.calendar-table-wrap:has(.cal-event-name:focus){overflow:visible}
 .cal-title small a{color:var(--nb-muted)!important}
 @media(max-width:800px){.calendar-table-wrap:has(.cal-event-name:focus){overflow-x:auto}.cal-event-name:focus .cal-tooltip{position:static;width:230px;margin-top:8px}}
+/* Keep the mobile brand clear of Streamlit's fixed toolbar. */
+@media(max-width:800px){[data-testid="stMainBlockContainer"]{padding-top:64px!important}}
