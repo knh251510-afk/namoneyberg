@@ -67,11 +67,13 @@ def feed(country):
         except Exception:pass
     return rows
 
+def saved_results():
+    try:return json.loads(Path(__file__).with_name('calendar_policy_results.json').read_text())['rows']
+    except (OSError,ValueError,KeyError):return []
+
 def collect(frame,current):
     countries={r['country'] for _,r in frame.iterrows() if r['when']<current and is_policy(r['title'])}
-    saved=Path(__file__).with_name('calendar_policy_results.json')
-    try:rows=json.loads(saved.read_text())['rows']
-    except (OSError,ValueError,KeyError):rows=[]
+    rows=saved_results()
     def one(country):
         try:return feed(country)
         except Exception:return []

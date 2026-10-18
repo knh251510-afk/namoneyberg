@@ -95,7 +95,7 @@ def render():
     lookup_key='calendar-values-v2-'+hashlib.sha256(signature.encode()).hexdigest()[:16]
     def fetch_values():
         return {'lookup':calendar_values.collect(frame[frame.country=='미국'],current),'international':calendar_international_values.collect(frame,current),'decisions':calendar_decisions.collect(frame,current)}
-    payload=quote_cache.request(lookup_key,fetch_values,lambda:{'lookup':calendar_values.saved_lookup(),'international':None},ttl=3600)
+    payload=quote_cache.request(lookup_key,fetch_values,lambda:{'lookup':calendar_values.saved_lookup(),'international':None,'decisions':calendar_decisions.saved_results()},ttl=3600)
     lookup=payload['lookup'];international=payload['international']
     st.caption('중요도 ★★★ 높음 · ★★☆ 보통 · ★☆☆ 참고 | 지표 이름에 커서를 올리면 설명을 볼 수 있습니다.')
     for day,group in frame.groupby(frame.when.dt.strftime('%Y.%m.%d'),sort=False):
