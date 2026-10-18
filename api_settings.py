@@ -4,12 +4,12 @@ from pathlib import Path
 import os
 
 SERVICES={'OpenAI':'research-agent-learning.openai','ECOS':'research-agent-learning.ecos',
-          'DART':'research-agent-learning.dart'}
+          'DART':'research-agent-learning.dart','KOSIS':'research-agent-learning.kosis'}
 CONFIG=Path(__file__).resolve().parent/'app_preferences.json'
 
 
 def read_key(name):
-    env_name={'OpenAI':'OPENAI_API_KEY','ECOS':'ECOS_API_KEY','DART':'DART_API_KEY'}[name]
+    env_name={'OpenAI':'OPENAI_API_KEY','ECOS':'ECOS_API_KEY','DART':'DART_API_KEY','KOSIS':'KOSIS_API_KEY'}[name]
     value=os.environ.get(env_name)
     if value:return value
     try:
@@ -25,6 +25,10 @@ def read_key(name):
 
 def save_key(name,value):
     if not value.strip():return
+    import sys
+    if sys.platform!='darwin':
+        os.environ[{'OpenAI':'OPENAI_API_KEY','ECOS':'ECOS_API_KEY','DART':'DART_API_KEY','KOSIS':'KOSIS_API_KEY'}[name]]=value.strip()
+        return
     from keyring.backends.macOS import Keyring
     Keyring().set_password(SERVICES[name],'api-key',value.strip())
 

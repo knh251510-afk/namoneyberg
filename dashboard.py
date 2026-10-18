@@ -202,6 +202,10 @@ def render_page(page,embedded=False):
             with st.expander('지표 정의 · 발표 주기',expanded=False):
                 st.caption(f"[FRED 계열 안내](https://fred.stlouisfed.org/series/{data.FRED[choice][0]})")
 
+    elif page=='통계 데이터':
+        import statistics_ui
+        statistics_ui.render()
+
     elif page=='경제 용어':
         import glossary_ui
         glossary_ui.render()
@@ -359,8 +363,8 @@ def render_page(page,embedded=False):
     elif page=='API 설정':
         if not admin_auth.require_admin():return
         st.subheader('API 설정')
-        st.write('여기서 한 번 저장하면 앱을 다시 열어도 자동으로 불러옵니다. 변경할 키만 입력하세요.')
-        cols=st.columns(3)
+        st.write('변경할 키만 입력하세요. 공개 배포에서 영구 보관하려면 Streamlit Secrets를 사용하세요.')
+        cols=st.columns(len(settings.SERVICES))
         for col,name in zip(cols,settings.SERVICES):
             col.metric(name,'저장됨' if settings.read_key(name) else '미등록')
         st.caption('저장 상태는 인증 성공 여부를 의미하지 않습니다. 실제 기능 실행 시 유효성을 확인합니다.')
@@ -368,11 +372,12 @@ def render_page(page,embedded=False):
             openai_value=st.text_input('OpenAI API 키',type='password',help='주간 뉴스 요약에 사용합니다.')
             ecos_value=st.text_input('한국은행 ECOS API 키',type='password',help='한국 월간 경상수지에 사용합니다. DART 키와 별도입니다.')
             dart_value=st.text_input('DART API 키',type='password',help='기존 기업 분석 실습용입니다. 거시 대시보드에는 필요하지 않습니다.')
+            kosis_value=st.text_input('KOSIS API 키',type='password',help='통계 데이터 조회에 사용합니다.')
             chosen_model=st.text_input('OpenAI 모델',value=settings.model_name())
             submitted=st.form_submit_button('설정 저장',type='primary')
         if submitted:
             failures=[]
-            for name,value in [('OpenAI',openai_value),('ECOS',ecos_value),('DART',dart_value)]:
+            for name,value in [('OpenAI',openai_value),('ECOS',ecos_value),('DART',dart_value),('KOSIS',kosis_value)]:
                 if value.strip():
                     try:settings.save_key(name,value)
                     except Exception:failures.append(name)
@@ -382,6 +387,8 @@ def render_page(page,embedded=False):
                 st.success('설정을 저장했습니다. 분석 화면에서 자동으로 사용합니다.')
                 st.rerun()
         st.info('키는 이 Mac의 키체인에 저장됩니다. 화면에 기존 키를 다시 노출하거나 결과 파일에 저장하지 않습니다. 키를 폐기·교체하면 여기서 새 키를 저장하세요.')
+        st.info('공개 배포에서는 Streamlit Secrets에 KOSIS_API_KEY를 등록하면 재시작 후에도 유지됩니다. 이 화면에서 저장한 클라우드 키는 서버 재시작 때 만료됩니다. 로컬 Mac은 키체인에 저장합니다.')
+        st.markdown('[KOSIS 키 발급](https://kosis.kr/openapi/)')
         st.markdown('[OpenAI 키 관리](https://platform.openai.com/api-keys) · [ECOS 키 발급](https://ecos.bok.or.kr/api/) · [DART 키 관리](https://opendart.fss.or.kr/)')
 
     else:
@@ -400,7 +407,7 @@ def render_page(page,embedded=False):
         st.caption('PMI, 각국 월간 소매판매·주택·신용 등은 아직 전체 국가에 연결되지 않았습니다. 데이터 공급원 확장 시 추가할 수 있습니다.')
 
 
-PAGE_SPECS=[('세계 요약','마켓 오버뷰','overview'),('경제지표','경제지표','indicators'),('물가 · 정책금리','물가·금리','prices'),
+PAGE_SPECS=[('세계 요약','마켓 오버뷰','overview'),('경제지표','경제지표','indicators'),('통계 데이터','통계 데이터','statistics'),('물가 · 정책금리','물가·금리','prices'),
             ('경기 · 무역 비교','경기·무역','economy'),('시장 · 고빈도 지표','시장지표','markets'),
             ('이번 주 마켓 오버뷰','마켓 오버뷰','weekly'),('뉴스','뉴스','news'),('경제지표 일정','경제지표 일정','calendar'),
             ('시장 시세','시장 시세','quotes'),('데이터 비교','데이터 비교','compare'),('경제 용어','경제 용어','glossary'),('관리자','관리자','admin'),('API 설정','API 설정','settings'),('데이터 안내','데이터 안내','sources')]

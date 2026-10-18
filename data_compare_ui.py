@@ -18,12 +18,16 @@ def catalog():
     for name,symbol in market_ui.SYMBOLS.items():
         unit='KRW/USD' if name=='원/달러' else ('JPY/USD' if name=='엔/달러' else ('CNY/USD' if name=='위안/달러' else ('USD/EUR' if name=='유로/달러' else ('USD' if name in ('WTI 선물','금 선물','비트코인') else '지수'))))
         out['시장 / '+name]=('market',symbol,None,unit)
+    for name,item in st.session_state.get('external_series',{}).items():out[name]=('external',name,None,item['unit'])
     return out
 
 from comparison_engine import MODES,prepare,transform
 
 def load_series(spec,fetch_safe):
     kind,key,country,unit=spec
+    if kind=='external':
+        item=st.session_state.get('external_series',{}).get(key)
+        return (item['frame'].copy(),item['meta'],None) if item else (pd.DataFrame(),{},'자료 없음')
     if kind=='market':
         try:
             f=market_ui.history(key,'max').rename(columns={'일자':'date','종가':'value'})
