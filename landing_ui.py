@@ -85,7 +85,9 @@ def render(pages):
             with column:
                 with st.container(key='home_group_'+items[0][2]):
                     asset,alt=ARTS[heading]
-                    st.image(str(Path(__file__).parent/'static'/f'home-{asset}.jpg'),width='stretch')
+                    from theme_assets import image_path
+                    from ui_theme import mode
+                    st.image(str(image_path('home-'+asset,mode())),width='stretch')
                     st.markdown('<h2 class="home-group-title">'+escape(heading)+'</h2>',unsafe_allow_html=True)
                     for label,description,path in items:
                         if path not in by_path:continue

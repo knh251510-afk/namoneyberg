@@ -12,7 +12,7 @@ def render(pages,active):
         with st.container(key='nav_group_'+paths[0]):
             if selected:
                 scope='.st-key-main_navigation .st-key-nav_group_'+paths[0]
-                st.markdown('<style>'+scope+' a,'+scope+' button{background:var(--nb-soft)!important;color:var(--nb-accent)!important;box-shadow:none!important}'+scope+' a:hover,'+scope+' button:hover{background:#e1eee7!important;color:#195244!important}</style>',unsafe_allow_html=True)
+                st.markdown('<style>'+scope+' a,'+scope+' button{background:var(--nb-soft)!important;color:var(--nb-accent)!important;box-shadow:none!important}'+scope+' a:hover,'+scope+' button:hover{background:var(--nb-hover)!important;color:var(--nb-accent)!important}</style>',unsafe_allow_html=True)
             if len(members)>1:
                 with st.popover(title,use_container_width=False):
                     for page in members:st.page_link(page,label=page.title)
