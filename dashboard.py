@@ -121,24 +121,6 @@ def render_page(page,embedded=False):
         return
 
     if page=='세계 요약':
-        st.markdown(f'<div class="edition-line"><span>주요국 정책금리</span><span>{data.now():%Y.%m.%d} 기준</span></div>',unsafe_allow_html=True)
-        with st.spinner('공식 통계와 금리를 불러오고 있습니다…'):
-            results=[(pd.DataFrame(),{},None)]*3+[fetch_safe('policy','')]
-        table=pd.DataFrame({'country':list(data.COUNTRIES)})
-        titles=['CPI · 전년동월 %','GDP 성장 · 연간 %','실업률 · 연간 %','정책금리 · %']
-        for title,(frame,meta,error) in zip(titles,results):
-            if error:st.warning(f'{title}: {error}')
-            l=latest(frame)
-            if not l.empty:
-                l=l[['country','value','date','previous','change','previous_date']].rename(columns={'value':title,'date':title+' 관측','previous':title+' 이전','change':title+' 증감','previous_date':title+' 이전 관측'})
-                l[title+' 관측']=l[title+' 관측'].dt.strftime('%Y-%m-%d')
-                table=table.merge(l,on='country',how='left')
-        table['경제권']=table.country.map(label)
-        st.session_state['annual_snapshot']=table.to_json(orient='records',force_ascii=False)
-        visible=table[table.country.isin(selected)] if selected else table
-        policy_frame=results[3][0]
-        changes=portal_ui.policy_changes(policy_frame)
-        portal_ui.strip(visible,changes)
         render_page('이번 주 마켓 오버뷰',embedded=True)
     elif page=='물가 · 정책금리':
         indicator=st.segmented_control('지표',['CPI · 월간 전년동월비','정책금리','CPI · 연평균 상승률','PPI · 국가별 상세'],default='CPI · 월간 전년동월비') or 'CPI · 월간 전년동월비'
@@ -225,7 +207,7 @@ def render_page(page,embedded=False):
 
     elif page in ('이번 주 마켓 오버뷰','LOE 위클리'):
         start,end=data.week_bounds()
-        st.markdown('<div id="weekly-review" class="section-heading"><div><h2>이번 주 마켓 오버뷰</h2></div></div>',unsafe_allow_html=True)
+        st.markdown('<div id="weekly-review" class="overview-heading"><h1>마켓 오버뷰</h1><p>이번 주 시장 해설</p></div>',unsafe_allow_html=True)
         refresh=False
         articles=[];statuses=[]
         if admin_auth.is_admin():
@@ -294,7 +276,11 @@ def render_page(page,embedded=False):
             st.caption('주간 변화는 이전 주 마지막 관측과 이번 주 최신 관측을 비교합니다. 원유·금은 선물이며 가격과 휴장일은 시장마다 다릅니다.')
         for status in statuses:
             if status.get('error') or status.get('stale'):st.warning(status['source']+' 연결 실패 또는 이전 저장 자료 사용')
-        if briefing_controls.request_generation(bool(articles)):
+        with st.container(key='overview_toolbar'):
+            overview_meta_slot,overview_action_slot=st.columns([4,2],vertical_alignment='bottom')
+            with overview_action_slot:
+                generate_requested=briefing_controls.request_generation(bool(articles))
+        if generate_requested:
             if not admin_auth.is_admin():st.stop()
             try:
                 key=settings.read_key('OpenAI')
@@ -328,20 +314,20 @@ def render_page(page,embedded=False):
         reports=briefing_store.archive()
         saved=reports[0] if reports else None
         if len(reports)>1:
-            chosen=st.selectbox('지난 브리핑',range(len(reports)),format_func=lambda i:reports[i].get('period',{}).get('start','')[:10]+' · '+reports[i]['report']['headline'])
+            with st.expander('지난 브리핑',expanded=False):
+                chosen=st.selectbox('브리핑 선택',range(len(reports)),format_func=lambda i:reports[i].get('period',{}).get('start','')[:10]+' · '+reports[i]['report']['headline'])
             saved=reports[chosen]
         if saved and saved.get('period',{}).get('start','')[:10]!=start.date().isoformat():
             briefing_ui.metadata('이전 게시 브리핑')
-        briefing_ui.metadata(briefing_controls.updated_label(saved))
+        with overview_meta_slot:
+            briefing_ui.metadata(briefing_controls.updated_label(saved))
         if saved:
             st.session_state['weekly_report']=saved
             report_period=saved.get('period',{})
-            briefing_ui.metadata('브리핑 기준 '+report_period.get('start','')[:10]+' ~ '+report_period.get('end','')[:10])
+            with overview_meta_slot:
+                briefing_ui.metadata('대상 기간 '+report_period.get('start','')[:10]+' ~ '+report_period.get('end','')[:10])
             r=saved['report']
-            import briefing_art
-            briefing_art.render(saved)
-            from html import escape
-            st.markdown('<div class="brief-lead"><h3>'+escape(r['headline'])+'</h3><p>'+escape(r['summary'])+'</p></div>',unsafe_allow_html=True)
+            briefing_ui.lead(saved)
             briefing_ui.topics(r)
             briefing_ui.downloads(saved,start)
         else:
