@@ -15,4 +15,8 @@ class NewsDigestTests(unittest.TestCase):
         self.assertIn('title="2026.10.19 00:00 KST"',time_markup(rows[0],self.now))
         self.assertEqual(select_digest([{**rows[0],'url':'javascript:bad'}],self.now),[])
 
+    def test_food_bank_and_province_names_are_not_market_signals(self):
+        rows=[{'title':title,'excerpt':title,'url':f'https://example.org/{i}','source':'Example','published_at':self.now.isoformat()} for i,title in enumerate(['Food banks receive donations','경기도당 긴급회의 개최'])]
+        self.assertEqual(select_digest(rows,self.now),[])
+
 if __name__=='__main__':unittest.main()
