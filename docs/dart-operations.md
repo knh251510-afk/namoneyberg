@@ -27,3 +27,14 @@ python scripts/refresh_dart_directory.py
 ```
 
 공식 검색에서 KRX 상장기업 목록의 고유번호를 확인합니다. 미해결 종목은 JSON에 따로 기록합니다.
+
+## 2026-10-19 복구 확인
+Streamlit 서버는 DART의 TCP 연결이 30초 후에도 성립하지 않았습니다. 같은 날 기존 Mac의 원래 Python 3.9 환경에서는 키체인 키로 공식 API 호출에 성공했습니다. 이 경로로 삼성전자·SK하이닉스·삼성SDI·현대자동차·NAVER의 2020–2025년 연결/별도 재무제표 60건과 기업별 최근 공시 30건을 `dart-data` 브랜치에 게시했습니다. 따라서 현재 운영은 Streamlit 직접 연결 복구가 아니라 정상 연결되는 수집 환경과 웹 표시를 분리한 방식입니다.
+
+로컬 기존 키를 쓰려면 원래 실행환경으로 아래 명령을 실행합니다. GitHub Secret 추가 등록은 필요 없습니다.
+
+```sh
+.venv/bin/python scripts/collect_dart_financials.py --use-keychain --companies 005930,000660,006400,005380,035420 --year 2025 --span 5 --output macro_cache/dart-published/financials
+```
+
+생성된 `financials/`, `notices/`, `coverage.json`만 데이터 브랜치에 게시합니다. 공식 기업자료 외의 설정·키·로그는 게시하지 않습니다. 미래 수집에서 없는 연도는 기존 성공 파일을 지우지 않습니다.

@@ -21,8 +21,12 @@ def main():
     parser.add_argument('--span',type=int,choices=[3,5],default=3)
     parser.add_argument('--basis',choices=['CFS','OFS','both'],default='both')
     parser.add_argument('--output',type=Path,default=ROOT/'macro_cache/dart')
+    parser.add_argument('--use-keychain',action='store_true',help='Use the existing local DART key (run with the original local Python).')
     args=parser.parse_args()
     key=os.environ.get('DART_API_KEY','').strip()
+    if not key and args.use_keychain:
+        import api_settings
+        key=(api_settings.read_key('DART') or '').strip()
     if not key:
         print('DART_API_KEY secret is missing. Add it in repository Actions secrets.',file=sys.stderr)
         return 2
@@ -57,6 +61,34 @@ def main():
                 else:
                     failed+=1
                     print(f'{futures[future]}: {result}',flush=True)
+        # Refresh recent public notices independently; keep old files on failure.
+        from datetime import timedelta
+        now=datetime.now(ZoneInfo('Asia/Seoul'))
+        notice_folder=args.output.parent/'notices'
+        notice_folder.mkdir(parents=True,exist_ok=True)
+        for stock in wanted:
+            corp=lookup[stock]['corp_code']
+            try:
+                response=client.get('https://opendart.fss.or.kr/api/list.json',params={'crtfc_key':key,'corp_code':corp,'bgn_de':(now-timedelta(days=365)).strftime('%Y%m%d'),'end_de':now.strftime('%Y%m%d'),'page_count':30,'page_no':1,'sort':'date','sort_mth':'desc'})
+                response.raise_for_status();payload=response.json()
+                if payload.get('status') in ('000','013'):
+                    value={'corp_code':corp,'retrieved_at':now.isoformat(timespec='seconds'),'source':'https://opendart.fss.or.kr/api/list.json','rows':payload.get('list',[])}
+                    (notice_folder/(corp+'.json')).write_text(json.dumps(value,ensure_ascii=False,separators=(',',':')))
+            except (httpx.HTTPError,ValueError):print(f'{stock}: notice refresh unavailable; retained previous file')
+    coverage={}
+    corp_lookup={company['corp_code']:company for company in directory}
+    for file in args.output.glob('*.json'):
+        try:
+            saved=json.loads(file.read_text());corp=saved['corp_code']
+            if corp not in corp_lookup:continue
+            item=coverage.setdefault(corp,{**corp_lookup[corp],'years':[],'bases':[],'retrieved_at':saved['retrieved_at']})
+            if saved['year'] not in item['years']:item['years'].append(saved['year'])
+            if saved['basis'] not in item['bases']:item['bases'].append(saved['basis'])
+            item['retrieved_at']=max(item['retrieved_at'],saved['retrieved_at'])
+        except (OSError,KeyError,ValueError):continue
+    for item in coverage.values():item['years'].sort();item['bases'].sort()
+    if coverage:
+        (args.output.parent/'coverage.json').write_text(json.dumps({'source':'https://opendart.fss.or.kr','companies':list(coverage.values())},ensure_ascii=False,separators=(',',':')))
     print(f'Saved {ok}, no data {empty}, failed {failed}. Existing successful files were retained.')
     return 0 if ok and not failed else 1
 

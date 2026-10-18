@@ -44,7 +44,7 @@ def write_snapshot(folder,corp,year,basis,rows,retrieved_at):
 
 
 @st.cache_data(ttl=300,show_spinner=False,max_entries=512)
-def read_snapshot(corp,year,basis):
+def read_snapshot(corp,year,basis,revision="20261019-five-companies"):
     name=filename(corp,year,basis)
     candidates=[]
     for folder in (ROOT/'static'/'dart-statements',CACHE):
@@ -59,3 +59,30 @@ def read_snapshot(corp,year,basis):
             if value:candidates.append(value)
     except (httpx.HTTPError,ValueError):pass
     return max(candidates,key=lambda p:datetime.fromisoformat(p['retrieved_at']).timestamp()) if candidates else None
+
+
+@st.cache_data(ttl=300,show_spinner=False)
+def coverage():
+    try:payload=json.loads((ROOT/'static'/'dart-coverage.json').read_text())
+    except (OSError,ValueError):payload={'companies':[]}
+    try:
+        response=httpx.get(f'https://raw.githubusercontent.com/{REPO}/{BRANCH}/coverage.json',timeout=httpx.Timeout(4,connect=2))
+        if response.status_code==200:
+            remote=response.json()
+            if isinstance(remote,dict) and isinstance(remote.get('companies'),list):payload=remote
+    except (httpx.HTTPError,ValueError):pass
+    return [c for c in payload.get('companies',[]) if isinstance(c,dict) and re.fullmatch(r'\d{8}',str(c.get('corp_code',''))) and isinstance(c.get('years'),list)]
+
+
+@st.cache_data(ttl=300,show_spinner=False)
+def read_notices(corp):
+    if not re.fullmatch(r'\d{8}',str(corp)):return None
+    try:
+        response=httpx.get(f'https://raw.githubusercontent.com/{REPO}/{BRANCH}/notices/{corp}.json',timeout=httpx.Timeout(5,connect=2))
+        if response.status_code==200:
+            value=response.json()
+            if isinstance(value,dict) and value.get('corp_code')==corp and isinstance(value.get('rows'),list):
+                datetime.fromisoformat(value['retrieved_at'])
+                return value
+    except (httpx.HTTPError,ValueError,KeyError):pass
+    return None

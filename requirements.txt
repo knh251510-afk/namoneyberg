@@ -1,18 +1,26 @@
+# Versions validated with the application tests; retain the existing local Python.
 streamlit==1.66.0; python_version >= "3.11"
 streamlit==1.50.0; python_version < "3.11"
-pandas
-numpy
-requests
-httpx
-plotly
-yfinance
-openai
-
-altair
-keyring
-openpyxl
+pandas==3.0.6; python_version >= "3.11"
+pandas==2.3.3; python_version < "3.11"
+numpy==2.5.4; python_version >= "3.11"
+numpy==2.0.2; python_version < "3.11"
+requests==2.34.2; python_version >= "3.11"
+requests==2.32.5; python_version < "3.11"
+httpx==0.28.1
+plotly==7.1.0; python_version >= "3.11"
+plotly==5.24.1; python_version < "3.11"
+yfinance==1.7.0; python_version >= "3.11"
+yfinance==1.2.0; python_version < "3.11"
+openai==3.35.1; python_version >= "3.11"
+openai==2.48.0; python_version < "3.11"
+altair==6.3.0; python_version >= "3.11"
+altair==5.5.0; python_version < "3.11"
+keyring==25.7.0
+openpyxl==3.1.5
+beautifulsoup4==4.15.0; python_version >= "3.11"
+beautifulsoup4==4.14.3; python_version < "3.11"
 
 -r requirements-rag.txt
-
-# Avoid the PyArrow 26 crash/replacement cycle on Streamlit Cloud.
+# Keep the previously deployed workaround for the PyArrow 26 runtime issue.
 pyarrow==24.0.0; python_version >= "3.11"
