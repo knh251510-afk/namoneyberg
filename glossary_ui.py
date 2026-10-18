@@ -88,7 +88,7 @@ def render():
     st.subheader('경제 개념 지도')
     import streamlit.components.v1 as components
     import concept_map
-    st.caption('개념을 클릭하면 연결된 이웃을 펼칩니다. 선은 관계 설명이며 현재 시장의 확정적 인과관계를 뜻하지 않습니다.')
+    st.caption('개념을 선택해 연결을 살펴보세요.')
     components.html(concept_map.html(TERMS),height=760,scrolling=True)
     st.markdown('#### 용어 찾아보기')
     st.caption('시장 영향도: ★★★★★ 글로벌 전반 · ★★★★ 주요 시장·지역 · ★★★ 특정 부문 / 평시 기준 정성 평가이며 국면·예상 대비 차이에 따라 달라집니다.')
@@ -101,7 +101,7 @@ def render():
     with st.expander('경제 개념 연결 지도',expanded=False):
         from economic_ontology import CONCEPTS, RELATIONS
         chosen=st.selectbox('연결을 볼 개념',list(CONCEPTS),format_func=lambda c:CONCEPTS[c][0],key='ontology_concept')
-        st.caption('조건부 관계를 정리한 지도입니다. 현재 시장에서의 인과관계를 확정하지 않습니다.')
+
         for source,target,kind,note in RELATIONS:
             if chosen in (source,target):
                 st.markdown('**'+CONCEPTS[source][0]+' → '+CONCEPTS[target][0]+'**  \n'+note)

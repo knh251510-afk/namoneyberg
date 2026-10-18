@@ -23,7 +23,7 @@ BLS_SNAPSHOT=[('2026-10-16','08:30','수출입물가'),('2026-10-30','08:30','�
 
 def event(day,time,title,source,url):
     dt=datetime.strptime(day+' '+time,'%Y-%m-%d %H:%M').replace(tzinfo=ET).astimezone(data.KST)
-    return dict(when=dt,country='미국',title=title,source=source,url=url)
+    return dict(when=dt,country='미국',title=title,source=source,url=url,time_known=True)
 
 def parse_bea(raw):
     soup=BeautifulSoup(raw,'html.parser');events=[]
@@ -47,7 +47,8 @@ def parse_bea(raw):
 
 @st.cache_data(ttl=21600,show_spinner=False)
 def load():
-    events=[event(*e,'BLS',BLS) for e in BLS_SNAPSHOT];statuses=[]
+    from calendar_global import events as global_events
+    events=global_events()+[event(*e,'BLS',BLS) for e in BLS_SNAPSHOT];statuses=['한국·일본·유로존·영국 중앙은행과 한국 물가·고용·산업 일정: 공식 2026 계획 확인본 (2026-10-18). 시간 미정은 임의 추정하지 않습니다.']
     snapshot=Path(__file__).with_name('calendar_bls_history.json')
     if snapshot.exists():
         for item in json.loads(snapshot.read_text())['rows']:
@@ -63,9 +64,11 @@ def load():
 
 def render():
     st.subheader('주요 경제지표 발표 일정')
-    st.caption('미국 주요 지표 · 한국시간')
+    st.caption('한국 · 미국 · 일본 · 유로존 · 영국 | 한국시간')
     mode=st.segmented_control('표시 기간',['앞으로 30일','최근 1개월','최근 3개월','최근 1년','직접 선택'],default='최근 1개월') or '최근 1개월'
     with st.spinner('공식 발표 일정 조회 중…'):frame,status=load()
+    countries=st.multiselect('경제권', ['한국','미국','일본','유로존','영국'],default=['한국','미국','일본','유로존','영국'])
+    frame=frame[frame.country.isin(countries)]
     current=data.now();earliest=(pd.Timestamp(current.date())-pd.DateOffset(years=1)).date()
     if mode=='직접 선택':
         bounds=st.date_input('조회 기간',(earliest,current.date()),min_value=earliest,max_value=(current+timedelta(days=90)).date())
@@ -80,7 +83,7 @@ def render():
     if frame.empty:st.info('이 기간에 확인된 발표 일정이 없습니다.')
     from html import escape
     import calendar_values
-    with st.spinner('지난 발표 실적을 연결하고 있습니다…'):lookup=calendar_values.collect(frame,current)
+    with st.spinner('지난 발표 실적을 연결하고 있습니다…'):lookup=calendar_values.collect(frame[frame.country=='미국'],current)
     st.caption('실적은 현재 통계 DB의 수정 반영값 · 증감은 직전 대상월 대비')
     for day,group in frame.groupby(frame.when.dt.strftime('%Y.%m.%d'),sort=False):
         weekday=group.iloc[0]['when'].weekday()
@@ -88,7 +91,7 @@ def render():
         rows=[]
         for _,row in group.iterrows():
             past=row['when']<current
-            val=calendar_values.values(row,lookup) if past else None
+            val=calendar_values.values(row,lookup) if past and row['country']=='미국' else None
             name=row['title'].split(' · ')[0]
             if val:
                 name=val['name'];period=val['period']
@@ -102,7 +105,8 @@ def render():
             else:
                 period='';actual='—';previous='—';change='—';cls='flat'
             badge='지난 일정' if past else '발표 예정'
-            rows.append(f'<tr><td class="cal-time">{row["when"]:%H:%M}<small>미국</small></td><td class="cal-title">{escape(name)}<small>{escape(period)} · {badge}</small></td><td class="cal-number">{actual}</td><td class="cal-number">{previous}</td><td class="cal-number {cls}">{change}</td></tr>')
+            clock=row['when'].strftime('%H:%M') if row.get('time_known',True) else '시간 미정'
+            rows.append(f'<tr><td class="cal-time">{clock}<small>{escape(row["country"])}</small></td><td class="cal-title">{escape(name)}<small>{escape(period)} · {badge}</small></td><td class="cal-number">{actual}</td><td class="cal-number">{previous}</td><td class="cal-number {cls}">{change}</td></tr>')
         st.markdown('<div class="calendar-table-wrap"><table class="calendar-table"><thead><tr><th>시간</th><th>경제지표</th><th>실적 · 수정 반영</th><th>이전</th><th>전기 대비</th></tr></thead><tbody>'+''.join(rows)+'</tbody></table></div>',unsafe_allow_html=True)
     with st.expander('실적 출처 · 계산 기준',expanded=False):
         st.caption('현재 FRED 시계열을 발표 대상월과 연결합니다. 초도 발표 당시 수치와 다를 수 있습니다. GDP 추정차수·복수 대상월 등 일치 여부를 확인하지 못한 항목은 —로 표시합니다. 물가 상승률 간 차이는 %p, 고용 증감 간 차이는 천 명으로 계산합니다.')
@@ -111,3 +115,5 @@ def render():
     with st.expander('일정 출처 · 연결 상태',expanded=False):
         for item in status:st.caption(item)
         st.markdown(f'[미국 BLS 공식 일정]({BLS}) · [미국 BEA 공식 일정]({BEA})')
+        from calendar_global import SOURCES
+        for label,url in SOURCES.items():st.markdown(f'[{label} 공식 일정]({url})')

@@ -35,15 +35,15 @@ def generate(key,saved,model='gpt-image-2'):
     output=BytesIO();image.save(output,format='JPEG',quality=70,optimize=True)
     return {'mime':'image/jpeg','b64':base64.b64encode(output.getvalue()).decode(),'alt':saved['report']['headline']+' 주제를 표현한 대표 이미지','model':model,'prompt':prompt}
 
-def render(saved):
+def render(saved,key='brief_cover_published'):
     art=saved.get('cover_image')
     if not art:return
     try:
         data=base64.b64decode(art['b64'],validate=True)
-        st_image(data)
+        st_image(data,key)
     except (KeyError,ValueError):return
 
-def st_image(data):
+def st_image(data,key):
     import streamlit as st
-    with st.container(key='brief_cover'):
+    with st.container(key=key):
         st.image(data,use_container_width=True)
