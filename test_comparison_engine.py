@@ -34,6 +34,13 @@ class ComparisonTests(unittest.TestCase):
         f['value']=[0,0.5,1.25]
         self.assertIn('계산 불가',with_baseline_changes(f,{'일본':'%'}).iloc[-1]['시작 대비 변화율'])
 
+    def test_explicit_chart_domain_preserves_older_statistics(self):
+        f=pd.DataFrame({'date':pd.to_datetime(['1966-01-01','2025-01-01']),'value':[2.9,116.605]})
+        spec=chart_ui.timeseries(f,'date','value','지수',domain=('1966-01-01','2025-01-01')).to_dict()
+        self.assertEqual(spec['layer'][0]['encoding']['x']['scale']['domain'][0]['year'],1966)
+        rows=[r for dataset in spec['datasets'].values() for r in dataset]
+        self.assertTrue(any(r.get('value')==2.9 for r in rows))
+
     def test_chart_domain(self):
         f=self.frame();f.date=pd.to_datetime(f.date)
         spec=chart_ui.timeseries(f,'date','value','test',group='series',domain=('2020-01-01','2020-12-31')).to_dict()
