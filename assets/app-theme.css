@@ -420,3 +420,5 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 .st-key-footer_navigation [data-testid="stColumn"]{min-width:0!important}
 .st-key-footer_navigation [data-testid="stColumn"]:first-child{flex:1 1 auto!important}
 .st-key-footer_navigation [data-testid="stColumn"]:not(:first-child){flex:0 0 auto!important;width:auto!important}
+
+.cal-decision{min-width:240px;max-width:480px;white-space:normal!important;color:var(--nb-text);font-size:13px;line-height:1.65}.cal-decision strong{font-size:12px;color:var(--nb-accent)}.cal-decision p{font-size:13px!important;margin:5px 0!important}
