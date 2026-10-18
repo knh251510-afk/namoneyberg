@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
 :root{
  color-scheme:light;
  --nb-bg:#ffffff;
@@ -52,11 +53,11 @@
 }
  
 
-@font-face{font-family:Pretendard;src:url('/app/static/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+
 
 *{box-sizing:border-box}
-html,body,.stApp{font-family:Pretendard,-apple-system,BlinkMacSystemFont,sans-serif;color:var(--nb-text);background:var(--nb-bg)}
-.stApp p,.stApp h1,.stApp h2,.stApp h3,.stApp h4,.stApp button,.stApp label,.stApp input,.stApp a,.stApp table{font-family:Pretendard,-apple-system,sans-serif!important}
+html,body,.stApp{font-family:"Nanum Gothic","Malgun Gothic","맑은 고딕",sans-serif;color:var(--nb-text);background:var(--nb-bg)}
+.stApp p,.stApp h1,.stApp h2,.stApp h3,.stApp h4,.stApp button,.stApp label,.stApp input,.stApp a,.stApp table{font-family:"Nanum Gothic","Malgun Gothic","맑은 고딕",sans-serif!important}
 .stApp p{font-size:15px;line-height:1.75;font-weight:400}.stApp{font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}.stApp h1,.stApp h2,.stApp h3,.stApp h4{font-weight:600}.stApp table,.stApp [data-testid="stMetricValue"]{font-variant-numeric:tabular-nums}
 .stApp h1{font-size:26px;line-height:35px;letter-spacing:-.6px}
 .stApp h2{font-size:22px;line-height:1.4;letter-spacing:-.4px}

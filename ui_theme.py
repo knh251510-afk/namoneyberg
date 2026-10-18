@@ -14,5 +14,5 @@ def apply():
     seed_theme.apply(mode())
     t=colors(mode())
     def portal():
-        return {'config':{'background':t['bg'],'font':'Pretendard','view':{'stroke':None},'range':{'category':PALETTES[mode()]},'axis':{'labelColor':t['muted'],'titleColor':t['text'],'gridColor':t['grid'],'domainColor':t['border'],'labelFont':'Pretendard','titleFont':'Pretendard'},'legend':{'labelColor':t['muted'],'labelFont':'Pretendard','titleFont':'Pretendard'},'title':{'color':t['text'],'font':'Pretendard'}}}
+        return {'config':{'background':t['bg'],'font':'Nanum Gothic','view':{'stroke':None},'range':{'category':PALETTES[mode()]},'axis':{'labelColor':t['muted'],'titleColor':t['text'],'gridColor':t['grid'],'domainColor':t['border'],'labelFont':'Nanum Gothic','titleFont':'Nanum Gothic'},'legend':{'labelColor':t['muted'],'labelFont':'Nanum Gothic','titleFont':'Nanum Gothic'},'title':{'color':t['text'],'font':'Nanum Gothic'}}}
     alt.themes.register('macro_portal',portal);alt.themes.enable('macro_portal')
