@@ -27,8 +27,13 @@ def render():
         table=choices[chosen]
         inferred='Y' if len(str(table.get('END_PRD_DE','')))==4 else 'M'
         freq=st.selectbox('수록 주기',['M','Q','Y'],index=['M','Q','Y'].index(inferred),format_func=lambda x:{'M':'월간','Q':'분기','Y':'연간'}[x])
-        sample=src.parse_kosis(src.kosis_rows(table['ORG_ID'],table['TBL_ID'],freq,1,{},key))
-        if sample.empty:st.info('이 주기의 수치가 없습니다. 다른 수록 주기를 선택해주세요.');return
+        sample_rows=src.kosis_rows(table['ORG_ID'],table['TBL_ID'],freq,1,{},key)
+        sample=src.parse_kosis(sample_rows)
+        if sample.empty:
+            st.info('이 주기의 수치가 없습니다. 다른 수록 주기를 선택해주세요.')
+            with st.expander('통계표 조회 정보'):
+                st.json({'통계표':chosen,'요청 주기':freq,'응답 행 수':len(sample_rows),'응답 항목':sample_rows[:2]})
+            return
         specs=sample.drop_duplicates('series').set_index('series')
         series=st.selectbox('분석할 항목·지역·분류',list(specs.index),format_func=lambda k:specs.loc[k,'label']+' · '+str(specs.loc[k,'unit']))
         count=st.select_slider('최근 관측 수',[12,24,36,60,120],value=60)

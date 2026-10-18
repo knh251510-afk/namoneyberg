@@ -348,13 +348,13 @@ def render_page(page,embedded=False):
         st.subheader('뉴스')
         if st.button('뉴스 새로고침'):
             st.session_state.pop('news_cache',None)
-        with st.spinner('이번 주 뉴스 수집 중…'):
-            articles,status=data.news()
+        with st.spinner('최근 뉴스 수집 중…'):
+            articles,status=data.news(lookback_days=7)
         left,right=st.columns([3,2])
         query=left.text_input('기사 검색',placeholder='제목·언론사 검색')
         publisher=right.selectbox('언론사',['전체']+sorted({a['source'] for a in articles}))
         filtered=[a for a in articles if (publisher=='전체' or a['source']==publisher) and query.casefold() in (a['title']+' '+a['source']).casefold()]
-        st.caption(f'{len(filtered)}건 · 이번 주')
+        st.caption(f'{len(filtered)}건 · 최근 7일')
         pages_count=max(1,(len(filtered)+39)//40)
         page_number=st.number_input('페이지',min_value=1,max_value=pages_count,value=1,step=1)
         for item in filtered[(page_number-1)*40:page_number*40]:
