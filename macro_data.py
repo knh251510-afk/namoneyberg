@@ -199,7 +199,7 @@ def cpi_monthly(refresh=False):
         us,us_meta=fred('미국 CPI',refresh)
         if not us.empty:
             us=us.copy();us['country']='USA'
-            result=pd.concat([result[result.country!='USA'],us[['country','date','value']]],ignore_index=True)
+            result=pd.concat([result,us[['country','date','value']]],ignore_index=True).drop_duplicates(['country','date'],keep='last')
             meta={**meta,'us_source':us_meta,'us_definition':'BLS CPI-U, 비계절조정 전년동월비 (FRED)'}
     except (ValueError,KeyError):
         meta={**meta,'us_fallback':True}

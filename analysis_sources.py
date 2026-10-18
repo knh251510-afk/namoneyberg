@@ -1,5 +1,6 @@
 """KOSIS and OpenDART adapters. Never expose authenticated URLs in exceptions."""
-import io,re,zipfile,math
+import io,re,zipfile,math,json
+from pathlib import Path
 import xml.etree.ElementTree as ET
 from html import unescape
 import httpx
@@ -87,13 +88,18 @@ def parse_dart_companies(content):
         raise SourceError('DART 기업 목록 파일을 해석하지 못했습니다.') from None
     return [{'name':e.findtext('corp_name') or '', 'corp_code':e.findtext('corp_code'),'stock_code':e.findtext('stock_code')} for e in root.findall('list') if re.fullmatch(r'\d{6}',e.findtext('stock_code') or '')]
 
+@st.cache_data(show_spinner=False)
+def listed_companies():
+    payload=json.loads(Path(__file__).with_name('static').joinpath('krx-companies.json').read_text())
+    return sorted(payload['companies'],key=lambda c:c['name'].casefold())
+
 def parse_dart_search(content):
     if 'corpTable' not in content:
         raise SourceError('DART 기업 검색 응답 형식을 확인하지 못했습니다.')
     matches=[]
     for row in re.findall(r'<tr\b[^>]*>(.*?)</tr>',content,re.S|re.I):
         company=re.search(r"select\('([0-9]{8})'\).*?>(.*?)</a>",row,re.S)
-        stock=re.search(r'<td[^>]*>\s*([0-9]{6})\s*</td>',row,re.S|re.I)
+        stock=re.search(r'<td[^>]*>\s*([0-9A-Z]{6})\s*</td>',row,re.S|re.I)
         if company and stock:
             name=unescape(re.sub(r'<[^>]+>','',company.group(2))).strip()
             matches.append({'name':name,'corp_code':company.group(1),'stock_code':stock.group(1)})
@@ -102,7 +108,7 @@ def parse_dart_search(content):
 @st.cache_data(ttl=86400,show_spinner=False,max_entries=512)
 def dart_search(query,_key):
     query=query.strip()
-    if len(query)<2:raise SourceError('기업명은 두 글자 이상 입력해주세요.')
+    if not query:return []
     try:
         response=httpx.post('https://dart.fss.or.kr/dsae001/search.ax',
             data={'textCrpNm':query,'currentPage':'1','maxResults':'100'},

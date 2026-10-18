@@ -10,26 +10,17 @@ import financial_model as model
 
 def render():
     st.caption('공시 기반 재무제표 · 모델링 기초 데이터')
-    key=api_settings.read_key('DART')
-    if not key:
-        st.info('관리자가 DART 인증키를 등록하면 기업 재무제표와 공시를 조회할 수 있습니다.')
-        st.markdown('[관리자 API 설정](/settings) · [DART 키 발급](https://opendart.fss.or.kr/)');return
     try:
-        with st.form('company_search'):
-            query=st.text_input('기업명 또는 종목코드',placeholder='예: 삼성전자 또는 005930')
-            searched=st.form_submit_button('기업 검색',type='primary')
-        if searched:
-            st.session_state.pop('corporate_matches',None)
-            if not query.strip():st.info('기업명 또는 종목코드를 입력해주세요.');return
-            with st.spinner('기업 검색 중…'):
-                matched=src.dart_search(query.strip(),key)
-            st.session_state['corporate_matches']=matched
-        matched=st.session_state.get('corporate_matches',[])
-        if not matched:
-            if searched:st.info('검색 결과가 없습니다. 기업명 또는 6자리 종목코드를 확인해주세요.')
+        companies=src.listed_companies()
+        selected=st.selectbox('기업명 또는 종목코드',companies,index=None,
+            format_func=lambda c:c['name']+' · '+c['stock_code'],
+            placeholder='기업명 일부로 검색 · 예: 삼, 삼성, 005930')
+        if selected is None:return
+        company=selected
+        key=api_settings.read_key('DART')
+        if not key:
+            st.info('관리자가 DART 인증키를 등록하면 선택한 기업의 재무제표를 조회할 수 있습니다.')
             return
-        selected=st.selectbox('기업 선택',range(len(matched)),format_func=lambda i:matched[i]['name']+' · '+matched[i]['stock_code'])
-        company=matched[selected]
         a,b,c=st.columns(3)
         year=a.number_input('사업연도',min_value=2015,max_value=date.today().year,value=date.today().year-1,step=1)
         basis=b.selectbox('재무제표',['CFS','OFS'],format_func=lambda x:'연결' if x=='CFS' else '별도')
@@ -37,6 +28,9 @@ def render():
         if st.button('재무분석 조회',type='primary'):
             frames=[];warnings=[];raw={}
             with st.spinner('DART 재무제표와 공시 조회 중…'):
+                matches=src.dart_search(company['stock_code'],key)
+                company=next((c for c in matches if c['stock_code']==company['stock_code']),None)
+                if company is None:raise src.SourceError('DART에서 선택한 기업의 고유번호를 찾지 못했습니다.')
                 from concurrent.futures import ThreadPoolExecutor
                 years_to_fetch=list(range(max(2015,year-span),year+1))
                 def fetch_year(y):
@@ -52,9 +46,9 @@ def render():
                     if values['누락·모호']:warnings.append(str(y)+'년 확인 필요: '+', '.join(values['누락·모호']))
                 try:notices=src.dart_disclosures(company['corp_code'],(date.today()-timedelta(days=365)).strftime('%Y%m%d'),date.today().strftime('%Y%m%d'),key)
                 except src.SourceError as exc:notices=[];warnings.append('최근 공시: '+str(exc))
-            st.session_state['corporate_result']={'identity':(company['corp_code'],int(year),basis,span),'company':company,'rows':frames,'raw':raw,'notices':notices,'warnings':warnings}
+            st.session_state['corporate_result']={'identity':(company['stock_code'],int(year),basis,span),'company':company,'rows':frames,'raw':raw,'notices':notices,'warnings':warnings}
         saved=st.session_state.get('corporate_result')
-        if not saved or saved['identity']!=(company['corp_code'],int(year),basis,span):return
+        if not saved or saved['identity']!=(company['stock_code'],int(year),basis,span):return
         financials=pd.DataFrame(saved['rows'])
         if financials.empty:
             st.info('선택한 기준의 연간 재무제표를 가져오지 못했습니다.')

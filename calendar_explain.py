@@ -15,4 +15,4 @@ RULES=[
 def explain(title):
     return next(((score,note) for words,score,note in RULES if any(word.casefold() in title.casefold() for word in words)),(1,'공식 발표의 내용과 이전 흐름을 함께 확인하는 일정입니다. 영향은 시장 상황과 예상에서 벗어난 정도에 따라 달라집니다.'))
 
-def importance(score):return '●'*score+'○'*(3-score)
+def importance(score):return '★'*score+'☆'*(3-score)
