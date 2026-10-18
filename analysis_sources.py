@@ -123,13 +123,22 @@ def dart_search(query,_key):
 @st.cache_data(ttl=86400,show_spinner=False)
 def dart_companies(_key):
     try:
-        r=httpx.get('https://opendart.fss.or.kr/api/corpCode.xml',params={'crtfc_key':_key},timeout=httpx.Timeout(20,connect=5));r.raise_for_status()
+        r=httpx.get('https://opendart.fss.or.kr/api/corpCode.xml',params={'crtfc_key':_key},timeout=httpx.Timeout(8,connect=3));r.raise_for_status()
     except httpx.TimeoutException:raise SourceError('DART 기업 목록 응답이 지연되고 있습니다. 다시 검색해주세요.') from None
     except httpx.HTTPError:raise SourceError('DART 기업 목록 서버에 연결하지 못했습니다. 공급원 상태를 확인해주세요.') from None
     return parse_dart_companies(r.content)
 
+@st.cache_data(ttl=86400,show_spinner=False,max_entries=1024)
 def resolve_dart_company(stock_code, key):
-    """Resolve directly from the shared official directory, without HTML search first."""
+    """Use the small public search response before downloading the full directory."""
+    try:
+        response=httpx.post('https://dart.fss.or.kr/dsae001/search.ax',
+            data={'textCrpNm':stock_code,'currentPage':'1','maxResults':'100'},
+            timeout=httpx.Timeout(8,connect=3))
+        response.raise_for_status()
+        company=next((c for c in parse_dart_search(response.text) if c['stock_code']==stock_code),None)
+        if company:return company
+    except (httpx.HTTPError,SourceError):pass
     company = next((c for c in dart_companies(key) if c['stock_code'] == stock_code), None)
     if company is None:
         raise SourceError('DART에서 선택한 기업의 고유번호를 찾지 못했습니다.')
