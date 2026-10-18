@@ -22,7 +22,7 @@ ui_theme.apply()
 with st.container(key='site_header'):
     logo_col,menu_col=st.columns([2,8],vertical_alignment='center')
     with logo_col:
-        st.markdown('<div class="brand-head"><div class="brand-name"><b>NAMONEYBERG</b></div></div>',unsafe_allow_html=True)
+        st.markdown('<div class="brand-head"><a class="brand-name" href="/" target="_self" aria-label="NAMONEYBERG 초기 화면" style="text-decoration:none"><b>NAMONEYBERG</b></a></div>',unsafe_allow_html=True)
     with menu_col:
         nav_slot=st.container(key='main_navigation')
 st.markdown('<footer class="terminal-footer"><b>NAMONEYBERG</b><nav aria-label="관리 메뉴"><a href="/admin">관리자</a><a href="/sources">데이터 안내</a></nav></footer>',unsafe_allow_html=True)
@@ -357,7 +357,7 @@ def render_page(page,embedded=False):
     elif page=='관리자':
         if not admin_auth.require_admin():return
         st.success('관리자로 로그인했습니다.')
-        st.markdown('[브리핑 관리](/) · [API 설정](/settings)')
+        st.markdown('[브리핑 관리](/overview) · [API 설정](/settings)')
         if st.button('로그아웃'):admin_auth.logout()
 
     elif page=='API 설정':
@@ -407,7 +407,7 @@ def render_page(page,embedded=False):
         st.caption('PMI, 각국 월간 소매판매·주택·신용 등은 아직 전체 국가에 연결되지 않았습니다. 데이터 공급원 확장 시 추가할 수 있습니다.')
 
 
-PAGE_SPECS=[('세계 요약','마켓 오버뷰','overview'),('경제지표','경제지표','indicators'),('통계 데이터','통계 데이터','statistics'),('물가 · 정책금리','물가·금리','prices'),
+PAGE_SPECS=[('시작 화면','홈','home'),('세계 요약','마켓 오버뷰','overview'),('경제지표','경제지표','indicators'),('통계 데이터','통계 데이터','statistics'),('물가 · 정책금리','물가·금리','prices'),
             ('경기 · 무역 비교','경기·무역','economy'),('시장 · 고빈도 지표','시장지표','markets'),
             ('이번 주 마켓 오버뷰','마켓 오버뷰','weekly'),('뉴스','뉴스','news'),('경제지표 일정','경제지표 일정','calendar'),
             ('시장 시세','시장 시세','quotes'),('데이터 비교','데이터 비교','compare'),('경제 용어','경제 용어','glossary'),('관리자','관리자','admin'),('API 설정','API 설정','settings'),('데이터 안내','데이터 안내','sources')]
@@ -418,13 +418,16 @@ for original,title,slug in PAGE_SPECS:
             if name in ('물가 · 정책금리','경기 · 무역 비교','시장 · 고빈도 지표'):
                 st.session_state['indicator_category']={'물가 · 정책금리':'물가·금리','경기 · 무역 비교':'경기·무역','시장 · 고빈도 지표':'시장지표'}[name]
                 st.switch_page(next(p for p in pages if p.url_path=='indicators'))
-            elif name=='이번 주 마켓 오버뷰':st.switch_page(pages[0])
+            elif name=='이번 주 마켓 오버뷰':st.switch_page(next(p for p in pages if p.url_path=='overview'))
+            elif name=='시작 화면':
+                import landing_ui
+                landing_ui.render()
             else:render_page(name)
         return view
-    pages.append(st.Page(make_page(original),title=title,url_path=slug,default=slug=='overview'))
+    pages.append(st.Page(make_page(original),title=title,url_path=slug,default=slug=='home'))
 active=st.navigation(pages,position='hidden')
 active_index=next((i for i,p in enumerate(pages) if p.url_path==active.url_path),0)
-public_specs=[spec for spec in PAGE_SPECS if spec[2] not in ('settings','sources','weekly','admin','prices','economy','markets')]
+public_specs=[spec for spec in PAGE_SPECS if spec[2] not in ('settings','sources','weekly','admin','prices','economy','markets','home')]
 active_spec=PAGE_SPECS[active_index]
 if active_spec in public_specs:
     menu_index=public_specs.index(active_spec)+1
@@ -432,7 +435,7 @@ if active_spec in public_specs:
 
 with nav_slot:
     for spec,nav_page in zip(PAGE_SPECS,pages):
-        if spec[2] not in ('settings','sources','weekly','admin','prices','economy','markets'):
+        if spec[2] not in ('settings','sources','weekly','admin','prices','economy','markets','home'):
             st.page_link(nav_page,label=spec[1])
 if st.query_params.get('page')=='settings':
     del st.query_params['page']
