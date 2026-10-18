@@ -18,8 +18,10 @@ import briefing_controls
 import briefing_ui
 import briefing_store
 
-st.set_page_config(page_title='NAMONEYBERG',page_icon='🌐',layout='wide')
+st.set_page_config(page_title='NAMONEYBERG',page_icon=str(Path(__file__).parent/'static/brand/namoneyberg-icon.png'),layout='wide')
 ui_theme.apply()
+import brand_assets
+brand_assets.apply()
 with st.container(key='site_header'):
     logo_col,menu_col,theme_col=st.columns([2,7,1],vertical_alignment='center')
     with logo_col:
