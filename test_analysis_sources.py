@@ -24,6 +24,14 @@ class SourceTests(unittest.TestCase):
         cur=extract_financials(rows+[dict(rows[0],thstrm_amount='2000')])
         self.assertIsNone(cur['매출액'])
         self.assertIsNone(financial_ratios({'자본':-1,'순이익':10},{'자본':100})['ROE'])
+    def test_company_resolution_uses_official_directory(self):
+        from analysis_sources import resolve_dart_company
+        company={'name':'삼성전자','stock_code':'005930','corp_code':'00126380'}
+        with patch('analysis_sources.dart_companies',return_value=[company]), patch('analysis_sources.httpx.post') as html:
+            self.assertEqual(resolve_dart_company('005930','key'),company)
+            html.assert_not_called()
+            with self.assertRaises(SourceError):resolve_dart_company('000000','key')
+
     def test_secret_error_sanitized(self):
         with patch('analysis_sources.httpx.get',side_effect=httpx.ConnectError('https://example.com?apiKey=SECRET')):
             with self.assertRaises(SourceError) as caught:request_json('https://example.com',{})

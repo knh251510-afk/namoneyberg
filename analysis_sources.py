@@ -128,6 +128,13 @@ def dart_companies(_key):
     except httpx.HTTPError:raise SourceError('DART 기업 목록 서버에 연결하지 못했습니다. 공급원 상태를 확인해주세요.') from None
     return parse_dart_companies(r.content)
 
+def resolve_dart_company(stock_code, key):
+    """Resolve directly from the shared official directory, without HTML search first."""
+    company = next((c for c in dart_companies(key) if c['stock_code'] == stock_code), None)
+    if company is None:
+        raise SourceError('DART에서 선택한 기업의 고유번호를 찾지 못했습니다.')
+    return company
+
 @st.cache_data(ttl=21600,show_spinner=False)
 def dart_statement(corp,year,basis,_key):
     result=request_json('https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json',{'crtfc_key':_key,'corp_code':corp,'bsns_year':year,'reprt_code':'11011','fs_div':basis})
