@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap'); @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square.css');
 :root{
  color-scheme:light;
  --nb-bg:#ffffff;
@@ -463,3 +463,6 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 
 .st-key-footer_navigation a p{color:var(--nb-muted)!important}
 .stApp [data-testid="stCaptionContainer"] p{color:var(--nb-muted)!important}
+
+/* Typography roles: display titles versus reading and data. */
+.stApp h1,.stApp h2,.stApp h3,.stApp h4,.stApp .home-card-title,.st-key-brand_home a p{font-family:"NanumSquare","Nanum Gothic","Malgun Gothic",sans-serif!important}
