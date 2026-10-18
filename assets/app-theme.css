@@ -479,3 +479,12 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 .calendar-table tbody tr:nth-child(even) td{background:var(--nb-bg)!important}
 .stApp [class*="st-key-home_menu_"] [data-testid="stCaptionContainer"] p{color:#e1e6e3!important}
 .stApp [class*="st-key-home_menu_"] [data-testid="stPageLink"] a p{font-weight:700!important}
+
+/* Neutral hover and explicit native control surfaces in both modes. */
+.stApp .st-key-main_navigation a p,.stApp .st-key-main_navigation button p{color:var(--nb-text)!important}
+.stApp [class*="st-key-home_menu_"] [class*="st-key-home_tool_"]:hover a p{color:#fff!important}
+.stApp [data-baseweb="select"]>div,.stApp [data-baseweb="input"],.stApp [data-baseweb="base-input"],.stApp input,.stApp textarea{background:var(--nb-surface)!important;color:var(--nb-text)!important}
+.stApp [data-baseweb="select"] span,.stApp [data-baseweb="select"] input,.stApp [data-baseweb="select"] svg{color:var(--nb-text)!important;fill:currentColor}
+.stApp input::placeholder,.stApp textarea::placeholder{color:var(--nb-muted)!important;opacity:1}
+.stApp [data-testid="stCaptionContainer"] p{color:var(--nb-muted)!important}
+[data-baseweb="popover"] [role="option"],[data-baseweb="popover"] li{background:var(--nb-surface)!important;color:var(--nb-text)!important}

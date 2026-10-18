@@ -7,8 +7,11 @@ import api_settings
 import analysis_sources as src
 import chart_ui
 import financial_model as model
+from theme_tokens import colors
+from ui_theme import mode
 
 def render():
+    palette=colors(mode())
     st.caption('공시 기반 재무제표 · 모델링 기초 데이터')
     key=api_settings.read_key('DART')
     if not key:
@@ -68,7 +71,7 @@ def render():
         for section,labels in model.SECTIONS.items():
             st.markdown('#### '+section)
             table=model.grid(saved['rows'],labels,years)/1e8
-            st.dataframe(table.style.format('{:,.1f}',na_rep='—'),width='stretch',
+            st.dataframe(table.style.format('{:,.1f}',na_rep='—').set_properties(**{'color':palette['text'],'background-color':palette['surface']}),width='stretch',
                          height=min(390,38+len(labels)*35))
         st.markdown('#### 핵심 모델링 지표')
         table=model.grid(saved['rows'],model.RATIOS,years,derived=True)
@@ -78,7 +81,7 @@ def render():
             for col in table.columns:
                 v=table.loc[label,col]
                 display.loc[label,col]='—' if pd.isna(v) else (f'{v:,.1f}억' if label.startswith('FCF') else f'{v:.1%}')
-        st.dataframe(display,width='stretch',height=320)
+        st.dataframe(display.style.set_properties(**{'color':palette['text'],'background-color':palette['surface']}),width='stretch',height=320)
         with st.expander('추이 그래프'):
             shown=financials[financials.연도.isin(years)].copy()
             choices=st.multiselect('비교 계정',list(src.ACCOUNTS),default=['매출액','영업이익'])
