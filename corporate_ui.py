@@ -38,7 +38,10 @@ def render():
         year=a.selectbox('사업연도',list(range(date.today().year-1,2014,-1)))
         basis=b.selectbox('재무제표',['CFS','OFS'],format_func=lambda x:'연결' if x=='CFS' else '별도')
         span=c.selectbox('비교 연수',[3,5],index=0)
-        if st.button('재무분석 조회',type='primary'):
+        prior=st.session_state.get('corporate_result')
+        current_identity=(company['stock_code'],int(year),basis,span)
+        changed_snapshot=bool(available and prior and prior.get('identity')==current_identity and prior.get('data_revision')!=available.get('retrieved_at'))
+        if st.button('재무분석 조회',type='primary') or changed_snapshot:
             frames=[];warnings=[];raw={};origins={}
             with st.spinner('DART 재무제표와 공시 조회 중…'):
                 progress=st.empty()
@@ -67,7 +70,7 @@ def render():
                     values=src.extract_financials(rows);frames.append({'연도':y,**values})
                     if values['누락·모호']:warnings.append(str(y)+'년 확인 필요: '+', '.join(values['누락·모호']))
                 notices=[]
-            st.session_state['corporate_result']={'identity':(company['stock_code'],int(year),basis,span),'company':company,'rows':frames,'raw':raw,'notices':notices,'warnings':warnings,'origins':origins}
+            st.session_state['corporate_result']={'identity':(company['stock_code'],int(year),basis,span),'company':company,'rows':frames,'raw':raw,'notices':notices,'warnings':warnings,'origins':origins,'data_revision':available.get('retrieved_at') if available else None}
         saved=st.session_state.get('corporate_result')
         if not saved:return
         if saved['identity']!=(company['stock_code'],int(year),basis,span):
