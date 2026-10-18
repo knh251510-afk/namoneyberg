@@ -284,6 +284,7 @@ def render_page(page,embedded=False):
                     generate_requested=briefing_controls.request_generation(bool(articles))
         if generate_requested:
             if not admin_auth.is_admin():st.stop()
+            st.session_state.pop('brief_generation_error',None)
             try:
                 key=settings.read_key('OpenAI')
                 model=settings.model_name()
@@ -306,8 +307,15 @@ def render_page(page,embedded=False):
             except Exception as error:
                 from openai import APIStatusError
                 if isinstance(error,APIStatusError):st.error(f'OpenAI 오류: HTTP {error.status_code} / {error.code or "미상"}')
-                elif isinstance(error,ValueError):st.error(str(error))
+                elif isinstance(error,ValueError):
+                    st.session_state['brief_generation_error']={'message':str(error),'news_count':len(articles),'source_count':len({a.get('source') for a in articles}),'at':data.now().isoformat()}
                 else:st.error('AI 요약 연결에 실패했습니다. 키·모델 접근 권한·네트워크를 확인해주세요.')
+        failed=st.session_state.get('brief_generation_error')
+        if admin_auth.is_admin() and failed:
+            st.error(failed['message'])
+            with st.expander('최근 생성 실패 정보',expanded=False):
+                st.caption('수집 뉴스 '+str(failed['news_count'])+'건 · 출처 '+str(failed['source_count'])+'곳 · '+failed['at'][:19])
+                st.caption('기존 게시본은 유지됩니다. 이 문구로 실패한 단계를 확인할 수 있습니다.')
         import briefing_editor
         briefing_editor.render()
         try:briefing_store.sync_remote()

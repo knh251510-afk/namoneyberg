@@ -527,3 +527,23 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 .st-key-overview_toolbar [data-testid="stPopover"] button p{font-size:12px!important}
 .st-key-overview_toolbar .st-key-brief_generation button{white-space:nowrap}
 @media(max-width:700px){.st-key-overview_toolbar [data-testid="stHorizontalBlock"]{flex-wrap:wrap}.st-key-overview_toolbar [data-testid="stColumn"]{min-width:0!important}}
+
+/* One native category rail, with client-side selection and moving marker. */
+.st-key-overview_categories{max-width:800px;margin:0 auto}
+.st-key-overview_categories [data-testid="stTabs"] [role="tablist"]{display:flex!important;gap:0!important;padding:0!important;background:transparent!important;border-radius:0!important;border-bottom:1px solid var(--nb-border)!important;overflow:hidden}
+.st-key-overview_categories [data-testid="stTabs"] [role="tab"]{position:relative;flex:1!important;min-width:0!important;height:82px!important;padding:12px 14px 12px 94px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:var(--nb-muted)!important;transform:none!important;transition:color 180ms ease-out,background-color 180ms ease-out!important}
+.st-key-overview_categories [role="tab"]::before{content:"";position:absolute;left:10px;top:10px;width:68px;height:60px;background-size:cover;background-position:center;border-radius:3px;opacity:.55;filter:grayscale(.3);transition:opacity 180ms ease-out,filter 180ms ease-out;transform:none!important;pointer-events:none}
+.st-key-overview_categories [data-testid="stTabs"] [role="tab"][aria-selected="true"]{background:var(--nb-surface)!important;color:var(--nb-text)!important;box-shadow:none!important}
+.st-key-overview_categories [role="tab"][aria-selected="true"]::before{opacity:1;filter:none}
+.st-key-overview_categories [role="tab"] p{font-size:15px!important;font-weight:700!important;color:inherit!important}
+.st-key-overview_categories [data-testid="stTabs"] [data-baseweb="tab-highlight"]{display:block!important;height:2px!important;background:var(--nb-text)!important;transition:left 220ms cubic-bezier(.2,.7,.3,1),width 220ms cubic-bezier(.2,.7,.3,1)!important}
+.st-key-overview_categories [data-baseweb="tab-panel"]{padding-top:0!important}
+.st-key-overview_categories [role="tabpanel"] .brief-topics{animation:overview-reveal 180ms ease-out}
+@keyframes overview-reveal{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(max-width:700px){.st-key-overview_categories [data-testid="stTabs"] [role="tab"]{height:66px!important;padding:10px 8px 10px 48px!important}.st-key-overview_categories [role="tab"]::before{left:4px;top:14px;width:34px;height:36px}.st-key-overview_categories [role="tab"] p{font-size:13px!important}}
+@media(prefers-reduced-motion:reduce){.st-key-overview_categories *{animation:none!important;transition:none!important}}
+
+/* Compact icon-only theme control; retain a screen-reader label. */
+.st-key-theme_switch button{position:relative!important;width:44px!important;min-width:44px!important;height:36px!important;min-height:36px!important;padding:7px!important;border-radius:5px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important}
+.st-key-theme_switch button p{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+.st-key-theme_switch button [data-testid="stIconMaterial"]{font-size:20px!important}

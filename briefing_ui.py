@@ -20,25 +20,6 @@ def category_image(asset,mode='light'):
     out=BytesIO();image.save(out,format='JPEG',quality=72,optimize=True)
     return 'data:image/jpeg;base64,'+base64.b64encode(out.getvalue()).decode()
 
-def category_picker():
-    selected=st.session_state.get('brief_category','매크로')
-    def choose(value):st.session_state['brief_category']=value
-    active=CATEGORIES[selected]
-    st.markdown(f'<style>.st-key-brief_category_{active} button{{border-color:var(--nb-text)!important;box-shadow:inset 0 -2px var(--nb-text)!important}}</style>',unsafe_allow_html=True)
-    rules=[]
-    for asset in CATEGORIES.values():
-        from ui_theme import mode
-        uri=category_image(asset,mode())
-        rules.append('.st-key-brief_category_'+asset+' button::before{background-image:url("'+uri+'")!important;}')
-    st.markdown('<style>'+''.join(rules)+'</style>',unsafe_allow_html=True)
-    with st.container(key='brief_categories'):
-        cols=st.columns(3)
-        for col,(label,asset) in zip(cols,CATEGORIES.items()):
-            with col:
-                with st.container(key='brief_category_'+asset):
-                    st.button(label,key='choose_brief_'+asset,on_click=choose,args=(label,),width='stretch')
-    return selected
-
 
 def lead(saved):
     report=saved.get('report',{})
@@ -47,7 +28,7 @@ def lead(saved):
     if art.get('mime') in ('image/jpeg','image/png','image/webp') and art.get('b64'):
         try:
             base64.b64decode(art['b64'],validate=True)
-            image='<img class="overview-cover" alt="'+escape(art.get('alt','ブリ핑 대표 이미지'),quote=True)+'" src="data:'+art['mime']+';base64,'+art['b64']+'">'
+            image='<img class="overview-cover" alt="'+escape(art.get('alt','브리핑 대표 이미지'),quote=True)+'" src="data:'+art['mime']+';base64,'+art['b64']+'">'
         except ValueError:pass
     layout=' has-cover' if image else ''
     st.markdown('<section class="overview-lead'+layout+'"><div><h2>'+escape(report.get('headline',''))+'</h2><p>'+escape(report.get('summary',''))+'</p></div>'+image+'</section>',unsafe_allow_html=True)
@@ -60,12 +41,10 @@ def downloads(saved,start):
         a.download_button('브리핑 문서 (.md)',report_markdown(saved),f'weekly_{start:%Y%m%d}.md','text/markdown')
         b.download_button('데이터 (.json)',json.dumps(__import__('briefing_store').public_report(saved),ensure_ascii=False,indent=2),'weekly_market_overview.json','application/json')
 
-@st.fragment
-def topics(report):
-    category=category_picker()
+def render_category(report,category):
     themes=[t for t in report.get('themes',[]) if t.get('category')==category]
     if not themes:
-        st.info('이 범주의 근거가 충분한 뉴스가 없습니다.')
+        st.caption('이 범주에 게시된 주제가 없습니다.')
         return
     blocks=[]
     for theme in themes:
@@ -73,3 +52,17 @@ def topics(report):
         comparison=('<dt>보도 비교</dt><dd>'+escape(theme['comparison'])+'</dd>') if theme.get('comparison') else ''
         blocks.append('<article class="brief-topic"><h4>'+escape(theme.get('title',''))+'</h4><dl><dt>종합 흐름</dt><dd>'+escape(theme.get('facts',''))+'</dd><dt>시장 의미</dt><dd>'+escape(theme.get('interpretation',''))+'</dd><dt>확인할 변수</dt><dd>'+escape(theme.get('watch',''))+'</dd>'+comparison+'</dl><details class="brief-sources"><summary>출처 '+str(len(theme.get('sources',[])))+'건</summary>'+sources+'</details></article>')
     st.markdown('<div class="brief-topics">'+''.join(blocks)+'</div>',unsafe_allow_html=True)
+
+
+def topics(report):
+    from ui_theme import mode
+    rules=[]
+    for index,asset in enumerate(CATEGORIES.values(),1):
+        uri=category_image(asset,mode())
+        rules.append('.st-key-overview_categories [role="tab"]:nth-of-type('+str(index)+')::before{background-image:url("'+uri+'")!important;}')
+    st.markdown('<style>'+''.join(rules)+'</style>',unsafe_allow_html=True)
+    with st.container(key='overview_categories'):
+        tabs=st.tabs(list(CATEGORIES))
+        for (category,_),tab in zip(CATEGORIES.items(),tabs):
+            with tab:
+                render_category(report,category)

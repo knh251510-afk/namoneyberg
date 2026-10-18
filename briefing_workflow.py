@@ -49,7 +49,15 @@ def build_workflow(generator=None,index=None):
             r['editorial_review']=review(s['key'],s['model'],r,s['snapshot'])
         return {'result':r,'stages':s['stages']+['validate']}
     graph=StateGraph(BriefingState)
-    for name,node in [('index',ingest),('retrieve',retrieve),('ontology',connect),('generate',generate),('validate',verify)]:graph.add_node(name,node)
+    labels={'index':'뉴스 색인','retrieve':'뉴스 검색','ontology':'개념 연결','generate':'초안 작성','validate':'근거 검증·검수'}
+    def guarded(name,node):
+        def run_stage(state):
+            try:return node(state)
+            except ValueError as exc:
+                raise ValueError(labels[name]+' 단계: '+str(exc)) from exc
+        return run_stage
+    for name,node in [('index',ingest),('retrieve',retrieve),('ontology',connect),('generate',generate),('validate',verify)]:
+        graph.add_node(name,guarded(name,node))
     graph.add_edge(START,'index');graph.add_edge('index','retrieve');graph.add_edge('retrieve','ontology');graph.add_edge('ontology','generate');graph.add_edge('generate','validate');graph.add_edge('validate',END)
     return graph.compile()
 
