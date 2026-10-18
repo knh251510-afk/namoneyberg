@@ -489,3 +489,35 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 .stApp [data-testid="stCaptionContainer"] p{color:var(--nb-muted)!important}
 [data-baseweb="popover"] [role="option"],[data-baseweb="popover"] li{background:var(--nb-surface)!important;color:var(--nb-text)!important}
 .stApp [data-baseweb="select"] div{background-color:var(--nb-surface)!important}
+
+/* Market overview: editorial hierarchy, stable category photography. */
+.overview-heading{padding:12px 0 18px;border-bottom:1px solid var(--nb-border);margin-bottom:12px}
+.stApp .overview-heading h1{font-size:28px!important;font-weight:700!important;line-height:1.4!important;padding:0!important;margin:0 0 8px!important}
+.overview-heading p{font-size:13px!important;color:var(--nb-muted);margin:0!important}
+.st-key-overview_toolbar{margin-bottom:4px}
+.st-key-overview_toolbar .brief-metadata{font-size:12px!important;line-height:1.8;color:var(--nb-muted)}
+.st-key-overview_toolbar .st-key-brief_generation{display:flex;justify-content:flex-end}
+.st-key-overview_toolbar .st-key-brief_generation button{min-height:36px!important;background:transparent!important;border:1px solid var(--nb-border)!important;border-radius:5px!important;padding:7px 12px!important;box-shadow:none!important}
+.st-key-overview_toolbar .st-key-brief_generation button p{font-size:12px!important;color:var(--nb-text)!important}
+.overview-lead{padding:30px 0 34px;margin:0 0 24px;border-bottom:1px solid var(--nb-border);display:grid;grid-template-columns:minmax(0,1fr);gap:30px;align-items:start}
+.overview-lead.has-cover{grid-template-columns:minmax(0,1fr) 220px}
+.stApp .overview-lead h2{font-size:30px!important;font-weight:700!important;line-height:1.45!important;letter-spacing:-.6px;max-width:29em;margin:0 0 20px!important;padding:0!important;word-break:keep-all}
+.overview-lead p{font-size:16px!important;line-height:1.9!important;color:var(--nb-text);max-width:76ch;margin:0!important;word-break:normal;overflow-wrap:break-word}
+.overview-cover{width:220px;height:180px;object-fit:cover;border-radius:4px;margin-top:5px}
+[class*="st-key-brief_category_"] button,[class*="st-key-brief_category_"] button:hover,[class*="st-key-brief_category_"] button:active{position:relative!important;height:86px!important;min-height:86px!important;padding:16px 14px 16px 108px!important;border:1px solid var(--nb-border)!important;border-radius:5px!important;background:var(--nb-bg)!important;background-image:none!important;transform:none!important;scale:1!important;box-shadow:none!important;transition:border-color 140ms ease-out!important;overflow:hidden;align-items:center!important}
+[class*="st-key-brief_category_"] button::before{content:"";position:absolute;left:0;top:0;bottom:0;width:90px;background-size:cover!important;background-position:center!important;background-repeat:no-repeat;transform:none!important;transition:filter 140ms ease-out;pointer-events:none}
+[class*="st-key-brief_category_"] button:hover::before{filter:brightness(.9);transform:none!important}
+[class*="st-key-brief_category_"] button:hover{border-color:var(--nb-muted)!important}
+.stApp [class*="st-key-brief_category_"] button p{font-size:15px!important;font-weight:700!important;color:var(--nb-text)!important;background:transparent!important;padding:0!important;border-radius:0!important}
+.brief-topics{max-width:800px;margin:24px auto 0}
+.brief-topic{padding:26px 0 34px!important;margin:0 0 8px!important;border-bottom:1px solid var(--nb-border)}
+.stApp .brief-topic h4{font-size:23px!important;line-height:1.55!important;font-weight:700!important;margin:0 0 24px!important;padding:0!important;word-break:keep-all}
+.brief-topic dl{display:block!important;margin:0!important;max-width:76ch}
+.brief-topic dt{font-size:13px!important;line-height:1.6!important;font-weight:700!important;color:var(--nb-text)!important;margin:23px 0 7px!important;padding:0!important}
+.brief-topic dt:first-child{margin-top:0!important}
+.brief-topic dd{font-size:15px!important;line-height:1.95!important;margin:0!important;word-break:normal!important;overflow-wrap:break-word}
+.brief-sources{margin-top:22px;font-size:12px;line-height:1.7}
+.brief-sources summary{color:var(--nb-muted);cursor:pointer}
+.brief-sources a{display:block;padding:7px 0;color:var(--nb-muted)!important;border-bottom:1px solid var(--nb-border);font-size:12px!important}
+.st-key-brief_downloads{max-width:800px;margin:18px auto 0;padding-top:20px;border-top:1px solid var(--nb-border)}
+@media(max-width:700px){.overview-lead.has-cover{grid-template-columns:1fr}.overview-cover{width:100%;height:150px}.stApp .overview-lead h2{font-size:25px!important}.overview-lead p{font-size:15px!important}.stApp .brief-topic h4{font-size:20px!important}[class*="st-key-brief_category_"] button,[class*="st-key-brief_category_"] button:hover{height:68px!important;min-height:68px!important;padding:8px 8px 8px 54px!important}[class*="st-key-brief_category_"] button::before{width:46px}.stApp [class*="st-key-brief_category_"] button p{font-size:13px!important}}

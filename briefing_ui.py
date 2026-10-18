@@ -24,12 +24,12 @@ def category_picker():
     selected=st.session_state.get('brief_category','매크로')
     def choose(value):st.session_state['brief_category']=value
     active=CATEGORIES[selected]
-    st.markdown(f'<style>.st-key-brief_category_{active} button{{border:2px solid var(--seed-color-bg-brand-solid)!important;box-shadow:inset 0 -4px 0 var(--seed-color-bg-brand-solid)!important}}.st-key-brief_category_{active} button p{{color:#fff!important}}</style>',unsafe_allow_html=True)
+    st.markdown(f'<style>.st-key-brief_category_{active} button{{border-color:var(--nb-text)!important;box-shadow:inset 0 -2px var(--nb-text)!important}}</style>',unsafe_allow_html=True)
     rules=[]
     for asset in CATEGORIES.values():
         from ui_theme import mode
         uri=category_image(asset,mode())
-        rules.append(f'.st-key-brief_category_{asset} button,.st-key-brief_category_{asset} button:hover'+ '{background-image:url("'+uri+'")!important;}')
+        rules.append('.st-key-brief_category_'+asset+' button::before{background-image:url("'+uri+'")!important;}')
     st.markdown('<style>'+''.join(rules)+'</style>',unsafe_allow_html=True)
     cols=st.columns(3)
     for col,(label,asset) in zip(cols,CATEGORIES.items()):
@@ -37,6 +37,19 @@ def category_picker():
             with st.container(key='brief_category_'+asset):
                 st.button(label,key='choose_brief_'+asset,on_click=choose,args=(label,),width='stretch')
     return selected
+
+
+def lead(saved):
+    report=saved.get('report',{})
+    art=saved.get('cover_image') or {}
+    image=''
+    if art.get('mime') in ('image/jpeg','image/png','image/webp') and art.get('b64'):
+        try:
+            base64.b64decode(art['b64'],validate=True)
+            image='<img class="overview-cover" alt="'+escape(art.get('alt','ブリ핑 대표 이미지'),quote=True)+'" src="data:'+art['mime']+';base64,'+art['b64']+'">'
+        except ValueError:pass
+    layout=' has-cover' if image else ''
+    st.markdown('<section class="overview-lead'+layout+'"><div><h2>'+escape(report.get('headline',''))+'</h2><p>'+escape(report.get('summary',''))+'</p></div>'+image+'</section>',unsafe_allow_html=True)
 
 def downloads(saved,start):
     import json
