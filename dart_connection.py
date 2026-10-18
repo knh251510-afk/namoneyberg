@@ -5,7 +5,7 @@ import httpx
 DART_API='https://opendart.fss.or.kr/api/list.json'
 
 
-def probe(key,ipv4=False):
+def probe(key,ipv4=False,wait=4):
     phase='요청 준비'
     started=time.monotonic()
     def trace(event,info):
@@ -15,7 +15,7 @@ def probe(key,ipv4=False):
         elif event.endswith('receive_response_headers.started'):phase='서버 응답 대기'
     try:
         transport=httpx.HTTPTransport(local_address='0.0.0.0',retries=0) if ipv4 else None
-        with httpx.Client(transport=transport,timeout=httpx.Timeout(8,connect=4),trust_env=not ipv4) as client:
+        with httpx.Client(transport=transport,timeout=httpx.Timeout(max(8,wait),connect=wait),trust_env=not ipv4) as client:
             response=client.get(DART_API,params={'crtfc_key':key.strip(),'corp_code':'00126380','page_count':'1','page_no':'1'},extensions={'trace':trace})
             response.raise_for_status()
             payload=response.json()

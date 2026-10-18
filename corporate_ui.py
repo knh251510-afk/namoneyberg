@@ -79,6 +79,12 @@ def render():
                 if st.session_state.get('dart_network_diagnostics'):
                     with st.expander('DNS · TCP · TLS 상세 진단'):
                         st.json(st.session_state['dart_network_diagnostics'])
+            if st.button('30초까지 기다려 연결 재확인',key='dart_connection_long_check'):
+                from dart_connection import probe
+                with st.spinner('DART 연결을 최대 30초까지 기다리고 있습니다…'):
+                    st.session_state['dart_long_diagnostic']=probe(key,ipv4=True,wait=30)
+            if st.session_state.get('dart_long_diagnostic'):
+                st.json(st.session_state['dart_long_diagnostic'])
             return
         financials=financials.sort_values('연도');latest=financials[financials.연도==year]
         if latest.empty:st.warning('선택 연도 자료가 없습니다. 과거 자료만 표시합니다.')
