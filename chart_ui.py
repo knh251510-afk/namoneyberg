@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-def timeseries(frame,x,y,unit,group=None,color='#315d97',height=350,domain=None):
+def timeseries(frame,x,y,unit,group=None,color='#9cc5f0',height=350,domain=None):
     alt.data_transformers.disable_max_rows()
     today=pd.Timestamp(datetime.now(ZoneInfo('Asia/Seoul')).date())
     f=frame.dropna(subset=[x,y]).reset_index(drop=True).copy()
@@ -34,7 +34,7 @@ def timeseries(frame,x,y,unit,group=None,color='#315d97',height=350,domain=None)
     for kind,dy in [('최고',-13),('최저',16)]:
         b=alt.Chart(e[e['극값']==kind]).encode(x=x+':T',y=y+':Q',tooltip=[alt.Tooltip('극값:N')]+tip)
         if group:b=b.encode(color=alt.Color(group+':N',legend=None),opacity=alt.condition(visible,alt.value(1),alt.value(0)))
-        parts.extend([b.mark_point(shape='diamond',filled=True,size=95,**({} if group else {'color':'#5cd5ed'})),b.mark_text(dy=dy,fontSize=10,color='#596f8d').encode(text='표시:N')])
+        parts.extend([b.mark_point(shape='diamond',filled=True,size=95,**({} if group else {'color':'#5cd5ed'})),b.mark_text(dy=dy,fontSize=10,color='#bdd3ed').encode(text='표시:N')])
     result=alt.layer(*parts).properties(height=height).resolve_scale(x='shared',y='shared')
     if group:result=result.add_params(visible)
     return result
