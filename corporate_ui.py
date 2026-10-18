@@ -76,6 +76,7 @@ def render():
         if saved['identity']!=(company['stock_code'],int(year),basis,span):
             st.info('조회 조건이 바뀌었습니다. 재무분석 조회를 눌러 새 조건으로 확인해주세요.')
             return
+        company=saved['company']
         financials=pd.DataFrame(saved['rows'])
         if financials.empty:
             st.info('선택한 기준의 연간 재무제표를 가져오지 못했습니다.')
