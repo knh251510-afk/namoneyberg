@@ -85,7 +85,12 @@ IMPACTS=[
 TERMS=[(cat,name,impact[0],meaning,impact[2],reading,impact[1]) for (cat,name,_,meaning,_,reading),impact in zip(TERMS,IMPACTS)]
 
 def render():
-    st.subheader('경제 용어 사전')
+    st.subheader('경제 개념 지도')
+    import streamlit.components.v1 as components
+    import concept_map
+    st.caption('개념을 클릭하면 연결된 이웃을 펼칩니다. 선은 관계 설명이며 현재 시장의 확정적 인과관계를 뜻하지 않습니다.')
+    components.html(concept_map.html(TERMS),height=760,scrolling=True)
+    st.markdown('#### 용어 찾아보기')
     st.caption('시장 영향도: ★★★★★ 글로벌 전반 · ★★★★ 주요 시장·지역 · ★★★ 특정 부문 / 평시 기준 정성 평가이며 국면·예상 대비 차이에 따라 달라집니다.')
     a,b=st.columns([3,2]);query=a.text_input('용어 검색',placeholder='예: CPI, 환율, %p');category=b.selectbox('분류',['전체']+list(dict.fromkeys(t[0] for t in TERMS)))
     rows=[t for t in TERMS if (category=='전체' or t[0]==category) and (not query.strip() or query.strip().casefold() in ' '.join(str(v) for v in t).casefold())]
@@ -93,5 +98,12 @@ def render():
     for cat,name,stars,meaning,why,reading,related in sorted(rows,key=lambda t:-t[2]):
         badge=("★"*stars+"☆"*(5-stars)) if stars else "해석 도구"
         st.markdown(f'<article class="glossary-item"><div class="glossary-title"><b>{escape(name)}</b><span aria-label="시장 영향도 {stars}점">{badge}</span></div><p>{escape(meaning)}</p><dl><dt>연결 개념</dt><dd>{escape(related)}</dd><dt>시장 영향</dt><dd>{escape(why)}</dd><dt>읽는 법</dt><dd>{escape(reading)}</dd></dl></article>',unsafe_allow_html=True)
+    with st.expander('경제 개념 연결 지도',expanded=False):
+        from economic_ontology import CONCEPTS, RELATIONS
+        chosen=st.selectbox('연결을 볼 개념',list(CONCEPTS),format_func=lambda c:CONCEPTS[c][0],key='ontology_concept')
+        st.caption('조건부 관계를 정리한 지도입니다. 현재 시장에서의 인과관계를 확정하지 않습니다.')
+        for source,target,kind,note in RELATIONS:
+            if chosen in (source,target):
+                st.markdown('**'+CONCEPTS[source][0]+' → '+CONCEPTS[target][0]+'**  \n'+note)
     with st.expander('참고 자료',expanded=False):
         st.markdown('[BLS · CPI](https://www.bls.gov/cpi/questions-and-answers.htm) · [BEA · GDP](https://www.bea.gov/resources/learning-center/what-to-know-gdp) · [연준 · 통화정책 전달 경로](https://www.federalreserve.gov/monetarypolicy/monetary-policy-what-are-its-goals-how-does-it-work.htm) · [BLS · PPI](https://www.bls.gov/ppi/overview.htm) · [FRED 계열 정의](https://fred.stlouisfed.org/)')
