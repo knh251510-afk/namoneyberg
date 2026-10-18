@@ -2,6 +2,8 @@
 from html import escape
 import streamlit as st
 
+ARTS={"시장 읽기":("reading","월가 분위기의 금융가 건축"),"데이터 살펴보기":("data","통계표와 시계열 차트를 살펴보는 분석 작업대"),"비교하고 이해하기":("connections","경제 개념의 연결을 표현한 입체 관계망")}
+
 GROUPS=[
  ('시장 읽기',[
   ('마켓 오버뷰','이번 주 이슈와 시장 해설','overview'),
@@ -19,7 +21,7 @@ GROUPS=[
  ]),
 ]
 
-def render():
+def render(pages):
     st.markdown('''<style>
 .home-intro{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr);gap:64px;align-items:start;padding:24px 0 36px;margin-bottom:32px;border-bottom:1px solid var(--nb-border)}
 .home-intro h1{font-size:30px!important;font-weight:650!important;line-height:1.4!important;letter-spacing:-.8px!important;margin:0 0 14px!important;padding:0!important}
@@ -41,15 +43,53 @@ def render():
 .home-note b{font-weight:500;color:var(--nb-text)}
 @media(max-width:800px){.home-intro{grid-template-columns:1fr;gap:24px}.home-quick{max-width:440px}.home-directory{grid-template-columns:1fr;gap:28px}.home-intro h1{font-size:26px!important}.home-tool{padding:16px 0}.home-note{gap:8px;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.home-tool .tool-arrow{transition:none}}
+
+.home-art{margin:0 0 20px;overflow:hidden;height:144px;background:#f8f6f2;border-radius:5px}
+.home-art img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 400ms cubic-bezier(.2,.7,.3,1)}
+.home-tool .tool-title{gap:8px}.home-tool .tool-title>span:first-child{flex:1}
+.tool-preview{width:46px;height:24px;color:var(--seed-color-palette-carrot-800);opacity:.45;flex-shrink:0;overflow:visible}
+.tool-preview path,.tool-preview rect,.tool-preview circle{vector-effect:non-scaling-stroke}
+@keyframes ink-trace{from{stroke-dashoffset:110}to{stroke-dashoffset:0}}
+@keyframes paper-read{0%{transform:translateY(2px);opacity:.3}100%{transform:translateY(0);opacity:1}}
+@keyframes bar-grow{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+@keyframes node-signal{0%,100%{opacity:.4}50%{opacity:1}}
+@media(prefers-reduced-motion:no-preference){
+ .home-tool:hover .tool-preview,.home-tool:focus-visible .tool-preview{opacity:1}
+ .home-tool:hover .trace,.home-tool:focus-visible .trace{stroke-dasharray:110;animation:ink-trace 650ms ease-out both}
+ .home-tool:hover .paper,.home-tool:focus-visible .paper{animation:paper-read 400ms ease-out both}
+ .home-tool:hover .bar,.home-tool:focus-visible .bar{transform-origin:center bottom;animation:bar-grow 450ms ease-out both;transform-box:fill-box}
+ .home-tool:hover .signal,.home-tool:focus-visible .signal{animation:node-signal 900ms ease-in-out 2}
+ .home-group:has(.home-tool:hover) .home-art img{transform:scale(1.035)}
+}
+@media(prefers-reduced-motion:reduce){.home-art img{transition:none}.tool-preview *{animation:none!important}}
+@media(max-width:800px){.home-art{height:160px;max-width:480px}.tool-preview{opacity:.65}}
 </style>
 <section class="home-intro"><div><h1>경제 데이터와 시장 해설</h1><p>주간 브리핑부터 국가 통계와 시장 시세까지.<br>필요한 자료를 찾아보고, 지표를 직접 비교할 수 있습니다.</p></div>
-<nav class="home-quick" aria-label="추천 시작점"><div class="quick-label">바로 시작하기</div><a href="/overview" target="_self">이번 주 마켓 오버뷰 <span>→</span></a><a href="/compare" target="_self">데이터 비교하기 <span>→</span></a></nav></section>
+</section>
 ''',unsafe_allow_html=True)
-    groups=[]
-    for heading,items in GROUPS:
-        links=[]
-        for label,description,path in items:
-            links.append(f'<a class="home-tool" href="/{path}" target="_self"><span class="tool-title">{escape(label)}<span class="tool-arrow" aria-hidden="true">↗</span></span><p>{escape(description)}</p></a>')
-        groups.append('<section class="home-group"><h2>'+escape(heading)+'</h2>'+''.join(links)+'</section>')
-    st.markdown('<div class="home-directory">'+''.join(groups)+'</div>',unsafe_allow_html=True)
+    icons={
+        'overview':'<path class="paper" d="M7 3h28v18H7zM12 8h18M12 12h13M12 16h17"/>',
+        'news':'<path class="paper" d="M5 4h35v17H5zM10 8h10v6H10zM24 8h11M24 12h11M10 18h25"/>',
+        'calendar':'<path d="M8 5h28v17H8zM8 10h28M15 2v6M29 2v6"/><circle class="signal" cx="22" cy="16" r="2"/>',
+        'indicators':'<path class="trace" d="M4 19L13 13L22 15L30 7L41 4"/>',
+        'statistics':'<rect class="bar" x="7" y="13" width="6" height="8"/><rect class="bar" x="20" y="7" width="6" height="14"/><rect class="bar" x="33" y="3" width="6" height="18"/>',
+        'quotes':'<path class="trace" d="M3 18L11 10L19 15L27 5L35 12L43 4"/>',
+        'compare':'<path class="trace" d="M3 18L14 14L25 16L42 4M3 8L14 12L25 5L42 14"/>',
+        'glossary':'<path class="trace" d="M9 15L23 6L38 17M23 6L25 21"/><circle class="signal" cx="9" cy="15" r="3"/><circle class="signal" cx="23" cy="6" r="3"/><circle class="signal" cx="38" cy="17" r="3"/>',
+    }
+    from pathlib import Path
+    by_path={page.url_path:page for page in pages}
+    by_path['home']=pages[0]
+    for column,(heading,items) in zip(st.columns(3,gap='large'),GROUPS):
+        with column:
+            with st.container(key='home_group_'+ARTS[heading][0]):
+                asset,alt=ARTS[heading]
+                st.image(str(Path(__file__).parent/'static'/f'home-{asset}.jpg'),use_container_width=True)
+                st.markdown('<h2 class="home-group-title">'+escape(heading)+'</h2>',unsafe_allow_html=True)
+                for label,description,path in items:
+                    if path not in by_path:continue
+                    with st.container(key='home_tool_'+path):
+                        st.page_link(by_path[path],label=label+'　↗')
+                        st.caption(description)
+                        st.markdown('<svg class="tool-preview" viewBox="0 0 46 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">'+icons[path]+'</svg>',unsafe_allow_html=True)
     st.markdown('<div class="home-note"><span><b>통계 출처</b>　World Bank · BIS · FRED · ECOS · KOSIS</span><span>각 화면에서 자료의 기준 시점과 원문을 확인할 수 있습니다.</span></div>',unsafe_allow_html=True)
