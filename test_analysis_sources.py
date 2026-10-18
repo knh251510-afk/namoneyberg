@@ -12,6 +12,15 @@ class SourceTests(unittest.TestCase):
         s=summary(f[f.series==f.series.iloc[0]])
         self.assertEqual(s['delta'],100);self.assertAlmostEqual(s['pct'],10)
         self.assertEqual(s['high']['value'],1100)
+    def test_kosis_annual_a_code_preserves_real_values(self):
+        row={'ORG_ID':'101','TBL_ID':'DT_2IFS002','ITM_ID':'T001','ITM_NM':'총지수','UNIT_NM':'지수','PRD_SE':'A','PRD_DE':'2025','DT':'116.605','C1':'1005','C1_NM':'대한민국'}
+        annual=parse_kosis([row])
+        self.assertEqual(len(annual),1)
+        self.assertEqual(annual.iloc[0]['value'],116.605)
+        self.assertEqual(annual.iloc[0]['date'],pd.Timestamp('2025-01-01'))
+        canonical=parse_kosis([{**row,'PRD_SE':'Y'}])
+        self.assertEqual(annual.iloc[0]['series'],canonical.iloc[0]['series'])
+
     def test_negative_and_zero_baselines(self):
         for base in [0,-1]:
             f=pd.DataFrame({'date':pd.to_datetime(['2024-01-01','2024-02-01']),'value':[base,2]})
