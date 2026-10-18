@@ -31,24 +31,28 @@ def render():
         if st.button('재무분석 조회',type='primary'):
             frames=[];warnings=[];raw={}
             with st.spinner('DART 재무제표와 공시 조회 중…'):
-                matches=src.dart_search(company['stock_code'],key)
-                company=next((c for c in matches if c['stock_code']==company['stock_code']),None)
-                if company is None:raise src.SourceError('DART에서 선택한 기업의 고유번호를 찾지 못했습니다.')
-                from concurrent.futures import ThreadPoolExecutor
+                progress=st.empty()
+                progress.caption('기업 고유번호 확인 중…')
+                company=src.resolve_dart_company(company['stock_code'],key)
+                from concurrent.futures import ThreadPoolExecutor, as_completed
                 years_to_fetch=list(range(max(2015,year-span),year+1))
                 def fetch_year(y):
                     try:return y,src.dart_statement(company['corp_code'],int(y),basis,key),None
                     except src.SourceError as exc:return y,[],str(exc)
-                with ThreadPoolExecutor(max_workers=3) as pool:
-                    fetched=list(pool.map(fetch_year,years_to_fetch))
+                fetched=[]
+                with ThreadPoolExecutor(max_workers=4) as pool:
+                    pending=[pool.submit(fetch_year,y) for y in years_to_fetch]
+                    for future in as_completed(pending):
+                        fetched.append(future.result())
+                        progress.caption(f'연간 재무제표 {len(fetched)}/{len(years_to_fetch)}개 확인')
+                progress.empty()
                 for y,rows,error in fetched:
                     raw[y]=rows
                     if error:warnings.append(str(y)+'년: '+error);continue
                     if not rows:warnings.append(str(y)+'년 자료 없음');continue
                     values=src.extract_financials(rows);frames.append({'연도':y,**values})
                     if values['누락·모호']:warnings.append(str(y)+'년 확인 필요: '+', '.join(values['누락·모호']))
-                try:notices=src.dart_disclosures(company['corp_code'],(date.today()-timedelta(days=365)).strftime('%Y%m%d'),date.today().strftime('%Y%m%d'),key)
-                except src.SourceError as exc:notices=[];warnings.append('최근 공시: '+str(exc))
+                notices=[]
             st.session_state['corporate_result']={'identity':(company['stock_code'],int(year),basis,span),'company':company,'rows':frames,'raw':raw,'notices':notices,'warnings':warnings}
         saved=st.session_state.get('corporate_result')
         if not saved:return
@@ -91,12 +95,30 @@ def render():
                 f['date']=pd.to_datetime(f.연도.astype(str)+'-12-31');f['value']/=1e8;f['series']=label;parts.append(f)
             if parts and any(not f.empty for f in parts):
                 st.altair_chart(chart_ui.timeseries(pd.concat(parts),'date','value','억 원',group='series',domain=(pd.Timestamp(years[0],1,1),pd.Timestamp(years[-1],12,31))),use_container_width=True,theme=None)
+                combined=pd.concat(parts)
+                scales=combined.groupby('series').value.apply(lambda v:v.abs().median())
+                scales=scales[scales>0]
+                if len(scales)>1 and scales.max()/scales.min()>=20:
+                    from comparison_engine import transform
+                    names=combined.groupby('series').value.first()
+                    eligible=names[names>0].index
+                    if len(eligible)>1:
+                        st.caption('시작값 = 100 · 수치 규모가 다른 계정의 추이 비교')
+                        trend=transform(combined[combined.series.isin(eligible)],'시작값 = 100')
+                        st.altair_chart(chart_ui.timeseries(trend,'date','value','시작값 100',group='series',domain=(pd.Timestamp(years[0],1,1),pd.Timestamp(years[-1],12,31))),width='stretch',theme=None)
         with st.expander('계산 기준 · 누락 항목 · 원문'):
             st.caption('ROE는 총당기순이익 ÷ 전년·당년 평균 총자본이며 지배주주 ROE와 다릅니다. 영업이익률·순이익률은 매출액 기준, 부채비율은 부채 ÷ 자본입니다. 계정 ID를 우선 사용하며 모호한 항목은 공란으로 표시합니다. 금융업 등 업종에 따라 단순 비율 비교는 제한됩니다. TTM·정상화 이익·주가 기반 가치평가는 포함하지 않습니다.')
             for note in saved['warnings']:st.caption(note)
             for row in saved['rows']:
                 if row.get('접수번호'):st.markdown(f"[{row['연도']}년 사업보고서](https://dart.fss.or.kr/dsaf001/main.do?rcpNo={row['접수번호']})")
         st.subheader('최근 공시')
+        if st.button('최근 공시 불러오기'):
+            with st.spinner('최근 공시 조회 중…'):
+                try:
+                    saved['notices']=src.dart_disclosures(company['corp_code'],(date.today()-timedelta(days=365)).strftime('%Y%m%d'),date.today().strftime('%Y%m%d'),key)
+                    saved['notices_loaded']=True
+                except src.SourceError as exc:st.warning(str(exc))
+        if saved.get('notices_loaded') and not saved['notices']:st.caption('최근 1년 공시가 없습니다.')
         for notice in saved['notices']:
             receipt=notice.get('rcept_no','')
             if receipt.isdigit():st.markdown('['+escape(notice.get('report_nm','공시'))+'](https://dart.fss.or.kr/dsaf001/main.do?rcpNo='+receipt+') · '+notice.get('rcept_dt',''))
