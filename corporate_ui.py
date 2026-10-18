@@ -70,10 +70,15 @@ def render():
                 from dart_connection import diagnostics
                 with st.spinner('기본 연결과 IPv4 직접 연결을 확인합니다…'):
                     st.session_state['dart_connection_diagnostics']=diagnostics(key)
+                    from dart_network import diagnostics as network_diagnostics
+                    st.session_state['dart_network_diagnostics']=network_diagnostics()
             diagnostic=st.session_state.get('dart_connection_diagnostics')
             if diagnostic:
                 st.dataframe(pd.DataFrame(diagnostic),hide_index=True,width='stretch')
                 st.caption('인증키와 요청 주소는 진단 결과에 포함하지 않습니다.')
+                if st.session_state.get('dart_network_diagnostics'):
+                    with st.expander('DNS · TCP · TLS 상세 진단'):
+                        st.json(st.session_state['dart_network_diagnostics'])
             return
         financials=financials.sort_values('연도');latest=financials[financials.연도==year]
         if latest.empty:st.warning('선택 연도 자료가 없습니다. 과거 자료만 표시합니다.')
