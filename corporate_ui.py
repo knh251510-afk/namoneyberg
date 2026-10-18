@@ -22,8 +22,18 @@ def render():
         selected=st.selectbox('기업명 또는 종목코드',companies,index=None,
             format_func=lambda c:c['name']+' · '+c['stock_code'],
             placeholder='기업명 일부로 검색 · 예: 삼, 삼성, 005930')
+        from dart_storage import coverage
+        provided=coverage()
+        names=' · '.join(c['name'] for c in provided)
+        if names:st.caption('현재 제공 기업: '+names)
         if selected is None:return
         company=selected
+        available=next((c for c in provided if c['stock_code']==company['stock_code']),None)
+        if provided and available is None:
+            st.info('선택한 기업의 재무자료는 수집 대기 중입니다. 현재 제공 기업을 선택해주세요.')
+            return
+        if available and available['years']:
+            st.caption(f"제공 연도 {min(available['years'])}–{max(available['years'])} · 연결·별도 재무제표")
         a,b,c=st.columns(3)
         year=a.selectbox('사업연도',list(range(date.today().year-1,2014,-1)))
         basis=b.selectbox('재무제표',['CFS','OFS'],format_func=lambda x:'연결' if x=='CFS' else '별도')
@@ -37,6 +47,7 @@ def render():
                 from concurrent.futures import ThreadPoolExecutor, as_completed
                 years_to_fetch=list(range(max(2015,year-span),year+1))
                 def fetch_year(y):
+                    if available and y not in available['years']:return y,[], '저장 자료 수집 대기',{}
                     try:
                         rows,origin=src.dart_statement_with_meta(company['corp_code'],int(y),basis,key)
                         return y,rows,None,origin
@@ -146,6 +157,9 @@ def render():
                     saved['notices_loaded']=True
                 except src.SourceError as exc:st.warning(str(exc))
         if saved.get('notices_loaded') and not saved['notices']:st.caption('최근 1년 공시가 없습니다.')
+        if saved['notices'] and saved['notices'][0].get('snapshot_at'):
+            stamp=pd.Timestamp(saved['notices'][0]['snapshot_at']).tz_convert('Asia/Seoul').strftime('%Y.%m.%d %H:%M KST')
+            st.caption('공시 수집 시각: '+stamp)
         for notice in saved['notices']:
             receipt=notice.get('rcept_no','')
             if receipt.isdigit():st.markdown('['+escape(notice.get('report_nm','공시'))+'](https://dart.fss.or.kr/dsaf001/main.do?rcpNo='+receipt+') · '+notice.get('rcept_dt',''))

@@ -40,4 +40,14 @@ class DartStorageTests(unittest.TestCase):
                 dart_storage.write_snapshot(folder,'00126380',2025,'CFS',[],'2026-10-19T01:00:00+09:00')
             self.assertEqual(len(json.loads(next(Path(folder).glob('*.json')).read_text())['rows']),1)
 
+    def test_saved_notices_are_filtered_by_requested_dates(self):
+        analysis_sources.dart_disclosures.clear()
+        saved={'retrieved_at':'2026-10-19T01:00:00+09:00','rows':[{'rcept_dt':'20261018','rcept_no':'20261018000001'},{'rcept_dt':'20241018','rcept_no':'20241018000001'}]}
+        with patch('dart_storage.read_notices',return_value=saved),patch('analysis_sources.request_json') as network:
+            rows=analysis_sources.dart_disclosures('00126380','20251019','20261019','test-key')
+        self.assertEqual(len(rows),1)
+        self.assertEqual(rows[0]['rcept_dt'],'20261018')
+        self.assertEqual(rows[0]['snapshot_at'],saved['retrieved_at'])
+        network.assert_not_called()
+
 if __name__=='__main__':unittest.main()

@@ -35,7 +35,7 @@ jobs:
           mkdir -p /tmp/dart-published
           if git ls-remote --exit-code --heads origin dart-data >/dev/null; then
             git fetch origin dart-data
-            git archive FETCH_HEAD financials | tar -x -C /tmp/dart-published
+            git archive FETCH_HEAD | tar -x -C /tmp/dart-published
           fi
       - name: Collect official statements
         id: collect
@@ -59,6 +59,15 @@ jobs:
           fi
           mkdir -p financials
           cp /tmp/dart-published/financials/*.json financials/
+          if test -d /tmp/dart-published/notices; then
+            mkdir -p notices
+            cp /tmp/dart-published/notices/*.json notices/
+            git add notices
+          fi
+          if test -f /tmp/dart-published/coverage.json; then
+            cp /tmp/dart-published/coverage.json coverage.json
+            git add coverage.json
+          fi
           git add financials
           if ! git diff --cached --quiet; then
             git commit -m 'Refresh official DART financial snapshots'

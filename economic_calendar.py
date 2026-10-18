@@ -63,6 +63,12 @@ def load():
     statuses.append('BEA: 공식 일정 연결' if more else 'BEA: 연결된 일정이 준비되면 추가합니다.')
     return pd.DataFrame(events).drop_duplicates(subset=['when','title']).sort_values('when'),statuses
 
+def format_value(value,signed=False):
+    if value is None or pd.isna(value):return '—'
+    digits=4 if 0<abs(value)<0.01 else 2
+    text=format(value,('+' if signed else '')+',.'+str(digits)+'f')
+    return text.rstrip('0').rstrip('.') if '.' in text else text
+
 @st.fragment
 def render():
     st.caption('한국시간 기준 · KST')
@@ -122,20 +128,18 @@ def render():
             name=row['title'].split(' · ')[0]
             if val:
                 name=val['name'];period=val['period']
-                actual=f'{val["value"]:,.2f} <small>{val["unit"]}</small>'
-                previous='—' if val['previous'] is None or pd.isna(val['previous']) else f'{val["previous"]:,.2f}'
+                actual=format_value(val['value'])+' <small>'+val['unit']+'</small>'
+                previous=format_value(val['previous'])
                 delta=val['change']
                 cls='rise' if delta is not None and delta>0 else ('fall' if delta is not None and delta<0 else 'flat')
-                change='—' if delta is None else f'{delta:+,.2f} {val["delta_unit"]}'
+                change='—' if delta is None else format_value(delta,signed=True)+' '+val['delta_unit']
                 if val['mom'] is not None and pd.notna(val['mom']) and val['name'].startswith('CPI'):
-                    change+=f'<small>물가지수 전월비 {val["mom"]:+.2f}% · 비계절조정</small>'
+                    change+='<small>물가지수 전월비 '+format_value(val['mom'],signed=True)+'% · 비계절조정</small>'
             else:
                 period='';actual='—';previous='—';change='—';cls='flat'
-            badge='지난 일정' if past else '발표 예정'
             clock=row['when'].strftime('%H:%M') if row.get('time_known',True) else '시간 미정'
             score,description=explain(row['title'])
-            currency={'한국':'KRW','미국':'USD','일본':'JPY','유로존':'EUR','영국':'GBP'}.get(row['country'],'')
-            tip='<span class="cal-event-name" tabindex="0">'+escape(name)+'<span class="cal-tooltip" role="tooltip">'+escape(description)+'</span></span>'
+            tip='<a class="cal-event-name" href="'+escape(row['url'],quote=True)+'" target="_blank" rel="noopener noreferrer">'+escape(name)+'<span class="cal-tooltip" role="tooltip">'+escape(description)+'</span></a>'
             if calendar_decisions.is_policy(row['title']):
                 decision=calendar_decisions.result(row,payload.get('decisions',[])) if past else None
                 if decision:
@@ -148,7 +152,7 @@ def render():
                     cells='<td colspan="3" class="cal-decision">'+text+'</td>'
             else:cells=f'<td class="cal-number">{actual}</td><td class="cal-number">{previous}</td><td class="cal-number {cls}">{change}</td>'
             target=policy_rows if calendar_decisions.is_policy(row['title']) else numeric_rows
-            target.append(f'<tr><td class="cal-time">{clock}</td><td class="cal-country">{escape(row["country"])}<small>{currency}</small></td><td class="cal-impact" aria-label="중요도 {score}/3" title="사이트 편집 기준 중요도 {score}/3">{importance(score)}</td><td class="cal-title">{tip}<small>{escape(period)+' · ' if period else ''}<a href="{escape(row["url"],quote=True)}" target="_blank" rel="noopener noreferrer">출처 ↗</a></small></td>{cells}</tr>')
+            target.append(f'<tr><td class="cal-time">{clock}</td><td class="cal-country">{escape(row["country"])}</td><td class="cal-impact" aria-label="중요도 {score}/3" title="사이트 편집 기준 중요도 {score}/3">{importance(score)}</td><td class="cal-title">{tip}<small>{escape(period)}</small></td>{cells}</tr>')
         for rows,heading in [(numeric_rows,'<th>실적</th><th>이전</th><th>증감</th>'),(policy_rows,'<th colspan="3">핵심 결정 · 안건</th>')]:
             if rows:st.markdown('<div class="calendar-table-wrap"><table class="calendar-table"><thead><tr><th>시간</th><th>경제권</th><th>중요도</th><th>경제지표</th>'+heading+'</tr></thead><tbody>'+''.join(rows)+'</tbody></table></div>',unsafe_allow_html=True)
     with st.expander('실적 출처 · 계산 기준',expanded=False):

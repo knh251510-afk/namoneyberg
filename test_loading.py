@@ -29,4 +29,22 @@ class LoadingTests(unittest.TestCase):
   future=quote_cache._STATE[name]['future'];future.result(timeout=1)
   self.assertEqual(quote_cache.request(name,loader,lambda:[]),['new'])
 
+ def test_calendar_workers_do_not_block_market_updates(self):
+  from threading import Barrier
+  barrier=Barrier(5);release=Event();market_started=Event()
+  prefix='calendar-isolation-'+str(time.monotonic())
+  def slow():
+   barrier.wait(timeout=2);release.wait(2);return ['calendar']
+  names=[prefix+'-'+str(i) for i in range(4)]
+  try:
+   for name in names:quote_cache.request(name,slow,lambda:[])
+   barrier.wait(timeout=2)
+   quote_cache.request('market-isolation-'+prefix,lambda:market_started.set(),lambda:[])
+   self.assertTrue(market_started.wait(1),'calendar reads must not hold market workers')
+  finally:
+   release.set()
+   for name in names:
+    future=quote_cache._STATE[name]['future']
+    if future:future.result(timeout=2)
+
 if __name__=='__main__':unittest.main()

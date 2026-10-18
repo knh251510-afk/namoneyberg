@@ -2,7 +2,15 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 import time
-_POOL=ThreadPoolExecutor(max_workers=2,thread_name_prefix='market-snapshot')
+_POOLS={
+    'market':ThreadPoolExecutor(max_workers=2,thread_name_prefix='market-snapshot'),
+    'calendar':ThreadPoolExecutor(max_workers=4,thread_name_prefix='calendar-snapshot'),
+    'general':ThreadPoolExecutor(max_workers=2,thread_name_prefix='data-snapshot'),
+}
+
+def pool_for(name):
+    kind='market' if name.startswith('market-') else ('calendar' if name.startswith('calendar-') else 'general')
+    return _POOLS[kind]
 _LOCK=Lock()
 _STATE={}
 
@@ -16,7 +24,7 @@ def request(name, loader, fallback, ttl=300):
             state['at']=time.monotonic();state['future']=None
         if state['value'] is None:state['value']=fallback()
         if state['future'] is None and time.monotonic()-state['at']>=ttl:
-            state['future']=_POOL.submit(loader)
+            state['future']=pool_for(name).submit(loader)
         return state['value']
 
 def invalidate(name):

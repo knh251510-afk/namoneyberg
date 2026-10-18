@@ -172,6 +172,9 @@ def dart_statement(corp,year,basis,_key):
 
 @st.cache_data(ttl=3600,show_spinner=False)
 def dart_disclosures(corp,start,end,_key):
+    from dart_storage import read_notices
+    saved=read_notices(corp)
+    if saved is not None:return [{**r,'snapshot_at':saved['retrieved_at']} for r in saved['rows'] if start<=r.get('rcept_dt','')<=end]
     result=request_json('https://opendart.fss.or.kr/api/list.json',{'crtfc_key':_key,'corp_code':corp,'bgn_de':start,'end_de':end,'page_count':30,'page_no':1,'sort':'date','sort_mth':'desc'})
     return result.get('list',[]) if isinstance(result,dict) else []
 
