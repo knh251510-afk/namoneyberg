@@ -9,7 +9,7 @@ import httpx
 HOSTS=('opendart.fss.or.kr','dart.fss.or.kr','kosis.kr','github.com')
 
 
-def endpoint(host):
+def endpoint(host,timeout=4):
     if host not in HOSTS:raise ValueError('Unsupported diagnostic target')
     result={'host':host,'stage':'DNS','dns_addresses':[]}
     started=time.monotonic()
@@ -19,7 +19,7 @@ def endpoint(host):
         result['dns_seconds']=round(time.monotonic()-started,3)
         result['stage']='TCP 443'
         with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as connection:
-            connection.settimeout(4)
+            connection.settimeout(timeout)
             t=time.monotonic()
             connection.connect((result['dns_addresses'][0],443))
             result['tcp_seconds']=round(time.monotonic()-t,3)
