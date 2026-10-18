@@ -488,3 +488,4 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 .stApp input::placeholder,.stApp textarea::placeholder{color:var(--nb-muted)!important;opacity:1}
 .stApp [data-testid="stCaptionContainer"] p{color:var(--nb-muted)!important}
 [data-baseweb="popover"] [role="option"],[data-baseweb="popover"] li{background:var(--nb-surface)!important;color:var(--nb-text)!important}
+.stApp [data-baseweb="select"] div{background-color:var(--nb-surface)!important}
