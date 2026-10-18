@@ -10,7 +10,7 @@ def request_generation(has_articles):
     if admin:
         st.checkbox('대표 이미지 함께 생성',value=True,key='brief_with_image')
     with st.container(key='brief_generation'):
-        clicked=st.button('브리핑 생성 · 최신화',icon=':material/refresh:',disabled=admin and not has_articles,key='generate_market_brief')
+        clicked=st.button('브리핑 생성 · 최신화',icon=':material/refresh:',disabled=admin and not has_articles,key='generate_market_brief',width='stretch')
     if not clicked:return False
     if not admin_auth.is_admin():
         st.toast('관리자만 사용할 수 있습니다.',icon='🔒')
