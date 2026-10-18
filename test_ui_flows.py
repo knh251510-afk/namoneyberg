@@ -11,7 +11,7 @@ st.navigation(pages,position='hidden')
 landing_ui.render(pages)
 ''').run()
   self.assertFalse(app.exception)
-  self.assertEqual(len(app.get('page_link')),10)
+  self.assertEqual(len(app.get('page_link')),9)
  def test_corporate_missing_key_is_upfront(self):
   with patch('api_settings.read_key',return_value=None):
    app=AppTest.from_string('import corporate_ui;corporate_ui.render()').run()

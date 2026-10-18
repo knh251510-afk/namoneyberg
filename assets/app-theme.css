@@ -459,3 +459,6 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 @media(prefers-reduced-motion:reduce){[class*="st-key-home_group_"] img{animation:none}}
 
 @media(max-width:800px){.st-key-site_header{position:relative}.st-key-site_header [data-testid="stColumn"]:has(.st-key-theme_switch){position:absolute!important;right:0;top:0;width:auto!important;min-width:0!important;flex:0 0 auto!important}.st-key-brand_home{padding-right:85px}}
+
+.st-key-footer_navigation a p{color:var(--nb-muted)!important}
+.stApp [data-testid="stCaptionContainer"] p{color:var(--nb-muted)!important}
