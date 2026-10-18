@@ -10,6 +10,10 @@ import financial_model as model
 
 def render():
     st.caption('공시 기반 재무제표 · 모델링 기초 데이터')
+    key=api_settings.read_key('DART')
+    if not key:
+        st.info('기업 재무분석을 현재 이용할 수 없습니다. 데이터 연결을 준비 중입니다.')
+        return
     try:
         companies=src.listed_companies()
         selected=st.selectbox('기업명 또는 종목코드',companies,index=None,
@@ -17,12 +21,8 @@ def render():
             placeholder='기업명 일부로 검색 · 예: 삼, 삼성, 005930')
         if selected is None:return
         company=selected
-        key=api_settings.read_key('DART')
-        if not key:
-            st.info('관리자가 DART 인증키를 등록하면 선택한 기업의 재무제표를 조회할 수 있습니다.')
-            return
         a,b,c=st.columns(3)
-        year=a.number_input('사업연도',min_value=2015,max_value=date.today().year,value=date.today().year-1,step=1)
+        year=a.selectbox('사업연도',list(range(date.today().year-1,2014,-1)))
         basis=b.selectbox('재무제표',['CFS','OFS'],format_func=lambda x:'연결' if x=='CFS' else '별도')
         span=c.selectbox('비교 연수',[3,5],index=0)
         if st.button('재무분석 조회',type='primary'):
@@ -48,7 +48,10 @@ def render():
                 except src.SourceError as exc:notices=[];warnings.append('최근 공시: '+str(exc))
             st.session_state['corporate_result']={'identity':(company['stock_code'],int(year),basis,span),'company':company,'rows':frames,'raw':raw,'notices':notices,'warnings':warnings}
         saved=st.session_state.get('corporate_result')
-        if not saved or saved['identity']!=(company['stock_code'],int(year),basis,span):return
+        if not saved:return
+        if saved['identity']!=(company['stock_code'],int(year),basis,span):
+            st.info('조회 조건이 바뀌었습니다. 재무분석 조회를 눌러 새 조건으로 확인해주세요.')
+            return
         financials=pd.DataFrame(saved['rows'])
         if financials.empty:
             st.info('선택한 기준의 연간 재무제표를 가져오지 못했습니다.')
@@ -65,7 +68,7 @@ def render():
         for section,labels in model.SECTIONS.items():
             st.markdown('#### '+section)
             table=model.grid(saved['rows'],labels,years)/1e8
-            st.dataframe(table.style.format('{:,.1f}',na_rep='—'),use_container_width=True,
+            st.dataframe(table.style.format('{:,.1f}',na_rep='—'),width='stretch',
                          height=min(390,38+len(labels)*35))
         st.markdown('#### 핵심 모델링 지표')
         table=model.grid(saved['rows'],model.RATIOS,years,derived=True)
@@ -75,7 +78,7 @@ def render():
             for col in table.columns:
                 v=table.loc[label,col]
                 display.loc[label,col]='—' if pd.isna(v) else (f'{v:,.1f}억' if label.startswith('FCF') else f'{v:.1%}')
-        st.dataframe(display,use_container_width=True,height=320)
+        st.dataframe(display,width='stretch',height=320)
         with st.expander('추이 그래프'):
             shown=financials[financials.연도.isin(years)].copy()
             choices=st.multiselect('비교 계정',list(src.ACCOUNTS),default=['매출액','영업이익'])

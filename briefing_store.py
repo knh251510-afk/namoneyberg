@@ -28,11 +28,18 @@ def remote_config():
 
 def remote_ready():return bool(remote_config()[1])
 
+def data_branch():
+    return setting('BRIEFING_GITHUB_BRANCH','briefing-data')
+
+def public_report(value):
+    # Editorial history stays on the server; public exports contain the approved copy.
+    return {k:v for k,v in value.items() if k not in {'editorial_changes','draft','original_draft','editorial_review'}}
+
 def _remote_reports():
     # No token in a URL, logs or report payload. Public repository reads need no token.
     repo,token=remote_config();headers={'Accept':'application/vnd.github+json'}
     if token:headers['Authorization']='Bearer '+token
-    r=requests.get(f'https://api.github.com/repos/{repo}/contents/published_briefings',headers=headers,timeout=12)
+    r=requests.get(f'https://api.github.com/repos/{repo}/contents/published_briefings',headers=headers,params={'ref':data_branch()},timeout=12)
     if r.status_code==404:return []
     r.raise_for_status();rows=[]
     for item in r.json():
@@ -43,7 +50,7 @@ def _remote_reports():
 def _remote_read(item):
     repo,token=remote_config();headers={'Accept':'application/vnd.github+json'}
     if token:headers['Authorization']='Bearer '+token
-    r=requests.get(f'https://api.github.com/repos/{repo}/contents/published_briefings/{item["name"]}',headers=headers,timeout=12);r.raise_for_status()
+    r=requests.get(f'https://api.github.com/repos/{repo}/contents/published_briefings/{item["name"]}',headers=headers,params={'ref':data_branch()},timeout=12);r.raise_for_status()
     value=json.loads(base64.b64decode(r.json()['content']))
     return value if valid(value) else None
 
@@ -95,6 +102,6 @@ def publish(value):
     repo,token=remote_config()
     if not token:raise ValueError('영구 게시를 위해 Streamlit Secrets의 BRIEFING_GITHUB_TOKEN을 등록해주세요.')
     name='overview_'+datetime.fromisoformat(value['generated_at']).strftime('%Y%m%d_%H%M%S_%f')+'.json'
-    r=requests.put(f'https://api.github.com/repos/{repo}/contents/published_briefings/{name}',headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'},json={'message':'Publish reviewed market briefing','content':base64.b64encode(json.dumps(value,ensure_ascii=False,indent=2).encode()).decode(),'branch':'main'},timeout=25)
+    r=requests.put(f'https://api.github.com/repos/{repo}/contents/published_briefings/{name}',headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'},json={'message':'Publish reviewed market briefing','content':base64.b64encode(json.dumps(public_report(value),ensure_ascii=False,indent=2).encode()).decode(),'branch':data_branch()},timeout=25)
     if r.status_code not in (200,201):raise ValueError(f'GitHub 게시 저장 실패 (HTTP {r.status_code}). 저장소 Contents 쓰기 권한을 확인해주세요.')
     return _save_local(value)

@@ -12,8 +12,9 @@ def render():
     st.subheader('통계 데이터')
     key=api_settings.read_key('KOSIS')
     if not key:
-        st.info('관리자가 KOSIS 인증키를 등록하면 주요 통계를 조회할 수 있습니다.')
-        st.markdown('[관리자 API 설정](/settings) · [KOSIS 키 발급](https://kosis.kr/openapi/)')
+        st.info('국가 통계를 현재 이용할 수 없습니다. 데이터 연결을 준비 중입니다.')
+        import admin_auth
+        if admin_auth.is_admin():st.caption('관리자 API 설정에서 KOSIS 인증키를 등록해주세요.')
         st.write('수집 주제: '+ ' · '.join(TOPICS));return
     left,right=st.columns([2,3])
     topic=left.selectbox('주요 통계',TOPICS)
@@ -58,6 +59,6 @@ def render():
             st.success('비교 목록에 추가했습니다.')
         st.markdown('[원자료 통계표]('+url+') · [데이터 비교](/compare)')
         with st.expander('관측값 · 계산 기준'):
-            st.dataframe(f[['period','value','unit']].rename(columns={'period':'관측기간','value':'값','unit':'단위'}),hide_index=True,use_container_width=True)
+            st.dataframe(f[['period','value','unit']].rename(columns={'period':'관측기간','value':'값','unit':'단위'}),hide_index=True,width='stretch')
             st.caption('최고·최저는 선택 구간 기준입니다. 증감률은 직전 값이 양수일 때만 계산하며, 비율 지표의 차이는 원단위 차이입니다. 월·분기 날짜는 관측기간 시작일이며 발표일이 아닙니다. 누락·비공개 값은 0으로 바꾸지 않습니다.')
     except src.SourceError as exc:st.error(str(exc))

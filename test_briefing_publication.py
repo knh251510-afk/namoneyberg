@@ -23,6 +23,13 @@ class PublicationTests(unittest.TestCase):
         with patch('admin_auth.is_admin',return_value=False),patch('briefing_store.requests.put') as put:
             with self.assertRaises(PermissionError):store.publish(self.report('2026-10-16T12:00:00+09:00'))
             put.assert_not_called()
+    def test_public_report_excludes_editorial_history(self):
+        value=self.report('2026-10-16T12:00:00+09:00')
+        value['editorial_changes']={'before':{'summary':'draft'}}
+        published=store.public_report(value)
+        self.assertNotIn('editorial_changes',published)
+        self.assertIn('editorial_changes',value)
+        self.assertEqual(published['report'],value['report'])
     def test_observations_keep_each_country(self):
         f=pd.DataFrame({'country':['USA','USA','KOR','KOR'],'date':pd.to_datetime(['2026-08-01','2026-09-01']*2),'value':[3,3.2,2,2.1]})
         rows=observations(f,{'url':'https://example.org'},'cpi')

@@ -440,3 +440,11 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 .st-key-main_navigation [data-testid="stElementContainer"]:has(style){display:none}
 [class*="st-key-brief_category_"] button p{color:#fff!important;background:#202927d9!important}
 @media(prefers-reduced-motion:reduce){.st-key-main_navigation a,.st-key-main_navigation button{transition:none!important}}
+
+/* Readable supporting text and steady touch targets. */
+.brief-metadata{font-size:12px!important}
+.st-key-brief_downloads button p{font-size:12px!important}
+[data-testid="stTabs"] [role="tab"][aria-selected="true"]{background:var(--nb-soft)!important;color:var(--nb-text)!important;box-shadow:inset 0 -2px var(--nb-accent)!important}
+[data-testid="stExpander"] details{background:var(--nb-surface)!important;border:1px solid var(--nb-border)!important}
+[data-testid="stExpander"] summary{color:var(--nb-text)!important}
+@media(max-width:800px){.quote-track{animation:none!important}.quote-ticker{overflow-x:auto}.st-key-brief_downloads button,.st-key-brief_generation button{min-height:44px!important}}

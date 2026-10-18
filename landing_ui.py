@@ -2,23 +2,13 @@
 from html import escape
 import streamlit as st
 
-ARTS={"시장 읽기":("reading","월가 분위기의 금융가 건축"),"데이터 살펴보기":("data","통계표와 시계열 차트를 살펴보는 분석 작업대"),"비교하고 이해하기":("connections","경제 개념의 연결을 표현한 입체 관계망")}
-
+ARTS={'브리핑':('reading','금융가 풍경'),'데이터':('data','통계와 시장 데이터'),'기업 분석':('data','기업 재무 데이터'),'발표 일정':('reading','시장과 정책 발표'),'개념 지도':('connections','경제 개념의 연결')}
 GROUPS=[
- ('시장 읽기',[
-  ('마켓 오버뷰','이번 주 이슈와 시장 해설','overview'),
-  ('경제 뉴스','기사 검색과 원문 확인','news'),
-  ('발표 일정','주요 지표의 발표일과 발표값','calendar'),
- ]),
- ('데이터 살펴보기',[
-  ('경제지표','국가별 물가·금리·성장 흐름','indicators'),
-  ('국가 통계','KOSIS 통계표 검색과 기간별 분석','statistics'),
-  ('시장 시세','주가지수·환율·원자재 가격','quotes'),
- ]),
- ('비교하고 이해하기',[
-  ('데이터 비교','서로 다른 지표를 골라 한눈에 비교','compare'),
-  ('경제 개념 지도','용어의 뜻과 개념 사이의 관계','glossary'),
- ]),
+ ('브리핑',[('마켓 오버뷰','이번 주 이슈와 시장 해설','overview'),('뉴스','기사 검색과 원문 확인','news')]),
+ ('데이터',[('경제지표','국가별 물가·금리·성장 흐름','indicators'),('국가 통계','KOSIS 통계표 검색과 기간별 분석','statistics'),('시장 시세','주가지수·환율·원자재 가격','quotes'),('데이터 비교','서로 다른 지표를 골라 한눈에 비교','compare')]),
+ ('기업 분석',[('기업 분석','기업별 재무제표와 모델링 기초 데이터 · 엑셀 추출','corporate')]),
+ ('발표 일정',[('발표 일정','주요 지표 발표값과 정책회의 결정','calendar')]),
+ ('개념 지도',[('개념 지도','용어의 뜻과 개념 사이의 관계','glossary')]),
 ]
 
 def render(pages):
@@ -68,6 +58,7 @@ def render(pages):
 </section>
 ''',unsafe_allow_html=True)
     icons={
+        'corporate':'<rect class="bar" x="7" y="12" width="6" height="9"/><rect class="bar" x="20" y="7" width="6" height="14"/><path class="trace" d="M4 17L19 10L40 3"/>',
         'overview':'<path class="paper" d="M7 3h28v18H7zM12 8h18M12 12h13M12 16h17"/>',
         'news':'<path class="paper" d="M5 4h35v17H5zM10 8h10v6H10zM24 8h11M24 12h11M10 18h25"/>',
         'calendar':'<path d="M8 5h28v17H8zM8 10h28M15 2v6M29 2v6"/><circle class="signal" cx="22" cy="16" r="2"/>',
@@ -80,16 +71,26 @@ def render(pages):
     from pathlib import Path
     by_path={page.url_path:page for page in pages}
     by_path['home']=pages[0]
-    for column,(heading,items) in zip(st.columns(3,gap='large'),GROUPS):
-        with column:
-            with st.container(key='home_group_'+ARTS[heading][0]):
-                asset,alt=ARTS[heading]
-                st.image(str(Path(__file__).parent/'static'/f'home-{asset}.jpg'),use_container_width=True)
-                st.markdown('<h2 class="home-group-title">'+escape(heading)+'</h2>',unsafe_allow_html=True)
-                for label,description,path in items:
-                    if path not in by_path:continue
-                    with st.container(key='home_tool_'+path):
-                        st.page_link(by_path[path],label=label+'　↗')
-                        st.caption(description)
-                        st.markdown('<svg class="tool-preview" viewBox="0 0 46 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">'+icons[path]+'</svg>',unsafe_allow_html=True)
+    import briefing_store
+    latest=briefing_store.latest()
+    if latest:
+        with st.container(key='home_latest_brief',border=True):
+            st.caption('최근 게시 브리핑')
+            st.markdown('### '+latest['report']['headline'])
+            st.write(latest['report']['summary'][:180])
+            st.caption('최신화 '+latest['generated_at'][:16].replace('T',' '))
+            if 'overview' in by_path:st.page_link(by_path['overview'],label='브리핑 읽기 →')
+    for offset in range(0,len(GROUPS),3):
+        for column,(heading,items) in zip(st.columns(min(3,len(GROUPS)-offset),gap='large'),GROUPS[offset:offset+3]):
+            with column:
+                with st.container(key='home_group_'+items[0][2]):
+                    asset,alt=ARTS[heading]
+                    st.image(str(Path(__file__).parent/'static'/f'home-{asset}.jpg'),width='stretch')
+                    st.markdown('<h2 class="home-group-title">'+escape(heading)+'</h2>',unsafe_allow_html=True)
+                    for label,description,path in items:
+                        if path not in by_path:continue
+                        with st.container(key='home_tool_'+path):
+                            st.page_link(by_path[path],label=label+'　→')
+                            st.caption(description)
+                            st.markdown('<svg class="tool-preview" viewBox="0 0 46 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">'+icons[path]+'</svg>',unsafe_allow_html=True)
     st.markdown('<div class="home-note"><span><b>통계 출처</b>　World Bank · BIS · FRED · ECOS · KOSIS</span><span>각 화면에서 자료의 기준 시점과 원문을 확인할 수 있습니다.</span></div>',unsafe_allow_html=True)

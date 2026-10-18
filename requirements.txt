@@ -1,4 +1,5 @@
-streamlit
+streamlit==1.66.0; python_version >= "3.11"
+streamlit==1.50.0; python_version < "3.11"
 pandas
 numpy
 requests
