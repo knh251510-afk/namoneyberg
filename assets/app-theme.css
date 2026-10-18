@@ -374,3 +374,27 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 .st-key-main_navigation button[kind=primary]{background:var(--nb-soft)!important;color:var(--nb-accent)!important}
 [class*="st-key-home_group_"] [data-testid="stImage"], [class*="st-key-home_group_"] [data-testid="stImageContainer"], [class*="st-key-home_group_"] [data-testid="stImage"] img{width:100%!important;max-width:100%!important}
 .stApp h2.home-group-title{font-size:14px!important;line-height:1.5!important;font-weight:550!important}
+
+[class*="st-key-brief_cover_"] [data-testid="stImage"],[class*="st-key-brief_cover_"] [data-testid="stImageContainer"],[class*="st-key-brief_cover_"] img{width:100%!important;max-width:100%!important}
+[class*="st-key-brief_cover_"] img{max-height:280px;object-fit:cover;border-radius:6px}
+
+/* Menu popovers use the same surface as the rest of the app. */
+[data-testid="stPopoverBody"]{background:var(--nb-surface)!important;color:var(--nb-text)!important;border:1px solid var(--nb-border)!important;border-radius:8px!important;box-shadow:0 12px 30px #0003!important;padding:8px!important}
+[data-testid="stPopoverBody"] [data-testid="stPageLink"] a{background:transparent!important;color:var(--nb-text)!important;border-radius:5px!important;padding:10px 14px!important}
+[data-testid="stPopoverBody"] [data-testid="stPageLink"] a:hover{background:var(--nb-soft)!important}
+[data-testid="stPopoverBody"] [data-testid="stPageLink"] a p{color:var(--nb-text)!important;font-size:14px!important}
+[class*="st-key-home_tool_"]{border-radius:5px;isolation:isolate}
+[class*="st-key-home_tool_"] div,[class*="st-key-home_tool_"] a{position:static!important}
+[class*="st-key-home_tool_"] a::after{content:"";position:absolute;inset:0;z-index:2;border-radius:5px}
+[class*="st-key-home_tool_"] a:focus-visible::after{outline:2px solid var(--nb-accent);outline-offset:3px}
+[class*="st-key-home_tool_"]:hover{background:var(--nb-surface);box-shadow:inset 3px 0 var(--nb-accent)}
+[class*="st-key-home_tool_"]:hover a p{color:var(--nb-accent)!important}
+[class*="st-key-home_tool_"] .tool-preview{top:18px!important;right:12px!important}
+[class*="st-key-home_group_"] [data-testid="stImageContainer"]{overflow:hidden;border-radius:5px}
+@media(prefers-reduced-motion:no-preference){
+[class*="st-key-home_tool_"]{transition:transform 180ms ease-out,background-color 180ms ease-out,box-shadow 180ms ease-out}
+[class*="st-key-home_tool_"]:hover{transform:translateY(-3px);padding-left:12px!important}
+[class*="st-key-home_group_"] [data-testid="stImage"] img{transition:transform 350ms ease-out}
+[class*="st-key-home_group_"]:has([class*="st-key-home_tool_"]:hover) [data-testid="stImage"] img{transform:scale(1.035)}
+}
+@media(prefers-reduced-motion:reduce){[class*="st-key-home_tool_"]{transition:none!important;transform:none!important}}

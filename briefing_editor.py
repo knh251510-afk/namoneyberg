@@ -11,7 +11,7 @@ def render():
     if not draft:return
     with st.expander('브리핑 초안 검토 · 게시',expanded=True):
         from briefing_art import render as render_art
-        render_art(draft)
+        render_art(draft,key='brief_cover_draft')
         edited=deepcopy(draft)
         draft_id=draft['generated_at']
         with st.form('briefing_editor_'+draft_id):
