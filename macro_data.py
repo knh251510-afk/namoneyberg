@@ -157,8 +157,9 @@ def week_bounds(at=None):
     return start,at
 
 
-def news(refresh=False):
+def news(refresh=False,lookback_days=None):
     start,end=week_bounds()
+    if lookback_days is not None:start=end-timedelta(days=lookback_days)
     def one(item):
         name,url=item
         try:
@@ -330,3 +331,5 @@ def prioritize_news(articles):
         if any(t in text for t in ['[부산소식]','[영상]','프로야구','월드 챔피언십','고향사랑','가로수']):value-=5
         return value
     return sorted(articles,key=lambda a:(score(a),a['published_at']),reverse=True)
+
+FEEDS.update({'Financial Times':'https://www.ft.com/rss/home','NPR Business':'https://feeds.npr.org/1006/rss.xml','Guardian Business':'https://www.theguardian.com/business/rss'})
