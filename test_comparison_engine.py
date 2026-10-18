@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from comparison_engine import prepare,transform
+from comparison_engine import prepare,transform,with_baseline_changes
 import chart_ui
 
 class ComparisonTests(unittest.TestCase):
@@ -25,6 +25,15 @@ class ComparisonTests(unittest.TestCase):
         f=pd.concat([self.frame(),self.frame().iloc[:1]])
         f=prepare(f,'2020-01-01','2020-12-31',overlap=False)
         self.assertEqual(len(f),5)
+    def test_actual_rates_and_changes(self):
+        f=pd.DataFrame({'series':['일본']*3,'date':pd.to_datetime(['2020-01-01','2021-01-01','2022-01-01']),'value':[0.25,0.5,1.25]})
+        result=with_baseline_changes(f,{'일본':'%'})
+        self.assertEqual(result.value.tolist(),[0.25,0.5,1.25])
+        self.assertEqual(result.iloc[-1]['시작 대비 차이'],'+1.00 %p')
+        self.assertEqual(result.iloc[-1]['시작 대비 변화율'],'+400.00%')
+        f['value']=[0,0.5,1.25]
+        self.assertIn('계산 불가',with_baseline_changes(f,{'일본':'%'}).iloc[-1]['시작 대비 변화율'])
+
     def test_chart_domain(self):
         f=self.frame();f.date=pd.to_datetime(f.date)
         spec=chart_ui.timeseries(f,'date','value','test',group='series',domain=('2020-01-01','2020-12-31')).to_dict()

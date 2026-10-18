@@ -279,7 +279,7 @@ def render_page(page,embedded=False):
         with st.container(key='overview_toolbar'):
             overview_meta_slot,overview_action_slot=st.columns([4,2],vertical_alignment='bottom')
             with overview_action_slot:
-                generation_slot,archive_slot=st.columns([1.5,1])
+                generation_slot,archive_slot=st.columns([1.5,1],gap='small')
                 with generation_slot:
                     generate_requested=briefing_controls.request_generation(bool(articles))
         if generate_requested:

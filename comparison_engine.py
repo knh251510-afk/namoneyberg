@@ -35,3 +35,21 @@ def transform(frame,mode):
             std=sub.value.std(ddof=0);sub['value']=(sub.value-sub.value.mean())/std if std>0 else 0.0
         parts.append(sub)
     return pd.concat(parts,ignore_index=True) if parts else frame.copy()
+
+
+def with_baseline_changes(frame, units):
+    """Keep actual levels; attach changes from each series' first observation."""
+    parts = []
+    for name, sub in frame.groupby('series', sort=False):
+        sub = sub.sort_values('date').copy()
+        baseline = sub.value.iloc[0]
+        unit = units[name]
+        difference_unit = '%p' if unit == '%' else unit
+        sub['기준일'] = sub.date.iloc[0].strftime('%Y-%m-%d')
+        sub['시작 대비 차이'] = (sub.value - baseline).map(lambda v: f'{v:+,.2f} {difference_unit}')
+        sub['시작 대비 변화율'] = (
+            ((sub.value - baseline) / baseline * 100).map(lambda v: f'{v:+,.2f}%')
+            if baseline > 0 else '계산 불가 · 시작값 0 이하'
+        )
+        parts.append(sub)
+    return pd.concat(parts, ignore_index=True) if parts else frame.copy()
