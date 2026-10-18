@@ -73,7 +73,7 @@ def render():
         saved_origins={y:origin for y,origin in saved.get('origins',{}).items() if origin.get('saved')}
         if saved_origins:
             dates=[origin['retrieved_at'] for origin in saved_origins.values()]
-            st.info('DART 저장 자료를 표시합니다. 마지막 수집: '+max(dates).replace('T',' ')+' · 미수집 연도는 —로 표시합니다.')
+            st.info('DART 저장 자료를 표시합니다. 마지막 수집: '+pd.Timestamp(max(dates)).tz_convert('Asia/Seoul').strftime('%Y.%m.%d %H:%M KST')+' · 미수집 연도는 —로 표시합니다.')
         years=list(range(int(year)-span+1,int(year)+1))
         st.download_button('엑셀 다운로드',model.export_xlsx(saved,years,basis),
                            file_name=company['stock_code']+'_fundamentals_'+basis+'.xlsx',
@@ -82,7 +82,8 @@ def render():
         for section,labels in model.SECTIONS.items():
             st.markdown('#### '+section)
             table=model.grid(saved['rows'],labels,years)/1e8
-            st.dataframe(table.style.format('{:,.1f}',na_rep='—').set_properties(**{'color':palette['text'],'background-color':palette['surface']}),width='stretch',
+            display=table.map(lambda value:'—' if pd.isna(value) else f'{value:,.1f}')
+            st.dataframe(display.style.set_properties(**{'color':palette['text'],'background-color':palette['surface']}),width='stretch',
                          height=min(390,38+len(labels)*35))
         st.markdown('#### 핵심 모델링 지표')
         table=model.grid(saved['rows'],model.RATIOS,years,derived=True)
