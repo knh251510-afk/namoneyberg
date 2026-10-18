@@ -25,16 +25,17 @@ def render(pages):
 .st-key-home_featured h2{font-size:21px!important;line-height:1.5!important;padding:0!important;margin:3px 0!important}
 .st-key-home_featured [data-testid="stCaptionContainer"] p{font-size:12px!important}
 .st-key-home_featured [data-testid="stMarkdownContainer"] p{font-size:14px!important;line-height:1.75}
+[class*="st-key-home_group_"] [data-testid="stFullScreenFrame"] > div,.st-key-home_featured [data-testid="stFullScreenFrame"] > div{width:100%!important;max-width:100%!important}
 .home-tools-heading{font-size:18px!important;margin:24px 0 4px!important;padding:0!important}
 .st-key-home_group_indicators,.st-key-home_group_corporate,.st-key-home_group_calendar,.st-key-home_group_glossary{min-height:350px!important;gap:12px!important}
-.home-group-title{font-size:18px!important;font-weight:650!important;color:var(--nb-text)!important;line-height:1.5!important;padding:0!important;margin:0!important}
+.stApp h2.home-group-title{font-size:18px!important;font-weight:650!important;color:var(--nb-text)!important;line-height:1.5!important;padding:0!important;margin:0!important}
 [class*="st-key-home_group_"] img{height:145px!important;width:100%!important;object-fit:cover;border-radius:5px;transition:filter 150ms ease-out}
 [class*="st-key-home_group_"] [data-testid="stCaptionContainer"] p{font-size:13px!important;line-height:1.7!important;min-height:42px;margin:0!important}
 [class*="st-key-home_group_"] [data-testid="stPageLink"] a{min-height:40px!important;padding:8px 10px!important;border-radius:5px;background:var(--nb-surface);color:var(--nb-text)!important}
 [class*="st-key-home_group_"] [data-testid="stPageLink"] a:hover{background:var(--nb-soft)!important;color:var(--nb-accent)!important}
 [class*="st-key-home_group_"] [data-testid="stPageLink"] a p{font-size:13px!important;font-weight:550!important;color:inherit!important}
 .home-note{font-size:12px;color:var(--nb-muted);padding:18px 0;border-top:1px solid var(--nb-border);line-height:1.7}
-@media(max-width:700px){.home-intro h1{font-size:25px!important}.st-key-home_featured img{height:165px!important}.st-key-home_group_indicators,.st-key-home_group_corporate,.st-key-home_group_calendar,.st-key-home_group_glossary{min-height:0!important}.home-group-title{font-size:17px!important}}
+@media(max-width:700px){.home-intro h1{font-size:25px!important}.st-key-home_featured img{height:165px!important}.st-key-home_group_indicators,.st-key-home_group_corporate,.st-key-home_group_calendar,.st-key-home_group_glossary{min-height:0!important}.stApp h2.home-group-title{font-size:17px!important}}
 </style><section class="home-intro"><h1>경제 데이터와 시장 해설</h1><p>시장을 읽고, 데이터를 비교하고, 경제의 연결을 이해합니다.</p></section>''',unsafe_allow_html=True)
     import briefing_store
     latest=briefing_store.latest()
