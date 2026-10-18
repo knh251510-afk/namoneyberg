@@ -14,5 +14,6 @@ def apply(mode="light"):
     start=base.index('{',base.index(selector));end=base.index('}',start)
     light_tokens=':root'+base[start:end+1]
     app=(ROOT/'assets/app-theme.css').read_text()
+    font_import, app = app.split('\n', 1)
     from theme_tokens import css
-    st.markdown('<style>'+base+'\n'+light_tokens+'\n'+app+'\n'+css(mode)+'</style>',unsafe_allow_html=True)
+    st.markdown('<style>'+font_import+'\n'+base+'\n'+light_tokens+'\n'+app+'\n'+css(mode)+'</style>',unsafe_allow_html=True)
