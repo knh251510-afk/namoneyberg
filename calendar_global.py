@@ -23,7 +23,11 @@ def events():
       '산업활동동향':['01-30','03-04','03-31','04-30','05-29','06-30','07-31','08-31','09-30','10-30','11-30','12-30'],
     }
     for title,days in stats.items():
-        for day in days:rows.append(make('2026-'+day,'한국','한국 '+title,'국가데이터처'))
+        for index,day in enumerate(days):
+            row=make('2026-'+day,'한국','한국 '+title,'국가데이터처')
+            ordinal=2026*12+(0 if title=='소비자물가' else -1)+index
+            row['target_period']=f'{ordinal//12:04d}-{ordinal%12+1:02d}'
+            rows.append(row)
     # Regular meetings are labeled as meetings rather than assuming every meeting decides a rate.
     for day in ['01-15','01-22','02-12','02-26','03-12','03-26','04-10','04-23','05-14','05-28','06-11','06-24','07-16','07-23','08-13','08-27','09-10','09-22','10-22','10-29','11-12','11-26','12-10','12-23']:
         rows.append(make('2026-'+day,'한국','한국은행 금융통화위원회 정기회의','한국은행'))
