@@ -12,10 +12,11 @@ def timeseries(frame,x,y,unit,group=None,color=None,height=350,domain=None):
     today=pd.Timestamp(datetime.now(ZoneInfo('Asia/Seoul')).date())
     f=frame.dropna(subset=[x,y]).reset_index(drop=True).copy()
     f[x]=pd.to_datetime(f[x]).dt.tz_localize(None)
-    f=f[f[x].between(pd.Timestamp('2000-01-01'),today)].copy()
+    requested_lo=pd.Timestamp(domain[0]) if domain else pd.Timestamp('2000-01-01')
+    f=f[f[x].between(requested_lo,today)].copy()
     if f.empty:return alt.Chart(pd.DataFrame({x:[],y:[]})).mark_line().properties(height=height)
     lo,hi=(pd.Timestamp(domain[0]),pd.Timestamp(domain[1])) if domain else (pd.Timestamp('2000-01-01'),today)
-    lo=max(lo,pd.Timestamp('2000-01-01'));hi=min(hi,today)
+    hi=min(hi,today)
     tip=([alt.Tooltip(group+':N',title='계열')] if group else [])+[alt.Tooltip(x+':T',title='날짜',format='%Y-%m-%d'),alt.Tooltip(y+':Q',title=unit,format=',.4f')]
     for field in ('기준일', '시작 대비 차이', '시작 대비 변화율'):
         if field in f.columns:tip.append(alt.Tooltip(field+':N', title=field))
