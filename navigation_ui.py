@@ -11,7 +11,8 @@ def render(pages,active):
         selected=active.url_path in paths
         with st.container(key='nav_group_'+paths[0]):
             if selected:
-                st.markdown('<style>.st-key-nav_group_'+paths[0]+' a,.st-key-nav_group_'+paths[0]+' button{background:var(--nb-soft)!important;color:var(--nb-accent)!important;box-shadow:inset 0 -2px var(--nb-accent)!important}</style>',unsafe_allow_html=True)
+                scope='.st-key-main_navigation .st-key-nav_group_'+paths[0]
+                st.markdown('<style>'+scope+' a,'+scope+' button{background:var(--nb-soft)!important;color:var(--nb-accent)!important;box-shadow:none!important}'+scope+' a:hover,'+scope+' button:hover{background:#e1eee7!important;color:#195244!important}</style>',unsafe_allow_html=True)
             if len(members)>1:
                 with st.popover(title,use_container_width=False):
                     for page in members:st.page_link(page,label=page.title)
