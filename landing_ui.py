@@ -12,6 +12,17 @@ GROUPS=[
 ]
 
 def render(pages):
+    icons={
+        'corporate':'<rect class="bar" x="7" y="12" width="6" height="9"/><rect class="bar" x="20" y="7" width="6" height="14"/><path class="trace" d="M4 17L19 10L40 3"/>',
+        'overview':'<path class="paper" d="M7 3h28v18H7zM12 8h18M12 12h13M12 16h17"/>',
+        'news':'<path class="paper" d="M5 4h35v17H5zM10 8h10v6H10zM24 8h11M24 12h11M10 18h25"/>',
+        'calendar':'<path d="M8 5h28v17H8zM8 10h28M15 2v6M29 2v6"/><circle class="signal" cx="22" cy="16" r="2"/>',
+        'indicators':'<path class="trace" d="M4 19L13 13L22 15L30 7L41 4"/>',
+        'statistics':'<rect class="bar" x="7" y="13" width="6" height="8"/><rect class="bar" x="20" y="7" width="6" height="14"/><rect class="bar" x="33" y="3" width="6" height="18"/>',
+        'quotes':'<path class="trace" d="M3 18L11 10L19 15L27 5L35 12L43 4"/>',
+        'compare':'<path class="trace" d="M3 18L14 14L25 16L42 4M3 8L14 12L25 5L42 14"/>',
+        'glossary':'<path class="trace" d="M9 15L23 6L38 17M23 6L25 21"/><circle class="signal" cx="9" cy="15" r="3"/><circle class="signal" cx="23" cy="6" r="3"/><circle class="signal" cx="38" cy="17" r="3"/>',
+    }
     by_path={page.url_path:page for page in pages}
     from theme_assets import image_path
     from ui_theme import mode
@@ -39,7 +50,7 @@ def render(pages):
 [class*="st-key-home_menu_"] [data-testid="stCaptionContainer"]{margin:0!important;padding:0!important}
 [class*="st-key-home_menu_"] [data-testid="stPageLink"] a p{line-height:1.5!important;margin:0!important}
 [class*="st-key-home_menu_"] [data-testid="stElementContainer"]{margin:0!important}
-.home-note{font-size:12px;color:var(--nb-muted);padding:20px 0;border-top:1px solid var(--nb-border);margin-top:24px}
+.stApp [class*="st-key-home_menu_"] [class*="st-key-home_tool_"]{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;gap:0!important}\n.stApp [class*="st-key-home_menu_"] .tool-preview{position:absolute!important;right:0!important;top:5px!important;width:40px;height:22px;color:#dceee3;pointer-events:none}\n.stApp [class*="st-key-home_menu_"] [data-testid="stPageLink"] a{padding-right:45px!important}\n.home-note{font-size:12px;color:var(--nb-muted);padding:20px 0;border-top:1px solid var(--nb-border);margin-top:24px}
 @media(hover:none){[class*="st-key-home_card_"] img{filter:brightness(.28)}[class*="st-key-home_menu_"]{opacity:1;visibility:visible;transform:none;padding-top:64px!important;background:transparent}.stApp .home-card-title{top:20px;bottom:auto;font-size:20px!important}[class*="st-key-home_card_"]:focus-within .home-card-title{opacity:1}}
 @media(prefers-reduced-motion:reduce){[class*="st-key-home_card_"],[class*="st-key-home_card_"] img,[class*="st-key-home_menu_"]{transition:none!important;transform:none!important}}
 </style><section class="home-intro"><h1>경제 데이터와 시장 해설</h1><p>시장의 흐름부터 데이터 분석까지, 필요한 도구를 선택하세요.</p></section>''',unsafe_allow_html=True)
@@ -55,6 +66,8 @@ def render(pages):
                     with st.container(key='home_menu_'+key):
                         for label,description,path in items:
                             if path in by_path:
-                                st.page_link(by_path[path],label=label+' →')
-                                st.caption(description)
+                                with st.container(key='home_tool_'+path):
+                                    st.page_link(by_path[path],label=label+' →')
+                                    st.caption(description)
+                                    st.markdown('<svg class="tool-preview" viewBox="0 0 46 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">'+icons[path]+'</svg>',unsafe_allow_html=True)
     st.markdown('<div class="home-note">통계 출처　World Bank · BIS · FRED · ECOS · KOSIS</div>',unsafe_allow_html=True)
