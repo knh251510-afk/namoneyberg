@@ -66,6 +66,14 @@ def render():
         if financials.empty:
             st.info('선택한 기준의 연간 재무제표를 가져오지 못했습니다.')
             for note in saved['warnings']:st.caption(note)
+            if st.button('DART 연결 상태 확인',key='dart_connection_check'):
+                from dart_connection import diagnostics
+                with st.spinner('기본 연결과 IPv4 직접 연결을 확인합니다…'):
+                    st.session_state['dart_connection_diagnostics']=diagnostics(key)
+            diagnostic=st.session_state.get('dart_connection_diagnostics')
+            if diagnostic:
+                st.dataframe(pd.DataFrame(diagnostic),hide_index=True,width='stretch')
+                st.caption('인증키와 요청 주소는 진단 결과에 포함하지 않습니다.')
             return
         financials=financials.sort_values('연도');latest=financials[financials.연도==year]
         if latest.empty:st.warning('선택 연도 자료가 없습니다. 과거 자료만 표시합니다.')
