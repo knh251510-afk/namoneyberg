@@ -70,12 +70,22 @@ def render():
     with st.spinner('공식 발표 일정 조회 중…'):frame,status=load()
     filters=st.columns([3,2,1.6],vertical_alignment='bottom')
     with filters[0]:
-        countries=st.multiselect('경제권', ['한국','미국','일본','유로존','영국'],default=['한국','미국','일본','유로존','영국'])
-    frame=frame[frame.country.isin(countries)]
+        countries=st.multiselect('경제권', ['한국','미국','일본','유로존','영국'],default=['한국','미국','일본','유로존','영국'],placeholder='경제권을 선택해주세요')
     from calendar_explain import explain,importance
     with filters[1]:
         levels=st.segmented_control('중요도',[1,2,3],format_func=lambda n:'★'*n,selection_mode='multi',default=[1,2,3])
-    frame=frame[frame.title.map(lambda title:explain(title)[0] in (levels or []))]
+    if not countries:
+        st.info('발표 일정을 확인할 경제권을 선택해주세요.')
+        return
+    if not levels:
+        st.info('확인할 일정의 중요도를 선택해주세요.')
+        return
+    frame=frame[frame.country.isin(countries)]
+    if frame.empty:
+        st.info('선택한 경제권의 발표 일정이 없습니다.')
+        return
+    frame=frame.loc[frame.title.map(lambda title:explain(title)[0] in levels).astype(bool)]
+
     current=data.now();earliest=(pd.Timestamp(current.date())-pd.DateOffset(years=1)).date()
     if mode=='직접 선택':
         bounds=st.date_input('조회 기간',(earliest,current.date()),min_value=earliest,max_value=(current+timedelta(days=90)).date())
