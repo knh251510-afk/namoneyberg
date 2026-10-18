@@ -421,7 +421,7 @@ public_specs=[spec for spec in PAGE_SPECS if spec[2] not in ('settings','sources
 active_spec=PAGE_SPECS[active_index]
 if active_spec in public_specs:
     menu_index=public_specs.index(active_spec)+1
-    st.markdown(f'<style>.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a{{background:transparent!important;color:var(--nb-accent)!important;border-bottom:3px solid var(--nb-accent)!important}}.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a p{{color:var(--nb-accent)!important;font-weight:600!important}}</style>',unsafe_allow_html=True)
+    st.markdown(f'<style>.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a{{background:var(--seed-color-bg-brand-weak)!important;color:var(--nb-accent)!important;border-bottom:0!important}}.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a p{{color:var(--nb-accent)!important;font-weight:600!important}}</style>',unsafe_allow_html=True)
 
 with nav_slot:
     for spec,nav_page in zip(PAGE_SPECS,pages):
