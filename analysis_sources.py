@@ -42,7 +42,7 @@ def parse_kosis(rows):
         raw=str(r.get('DT','')).replace(',','').strip()
         try:value=float(raw)
         except ValueError:continue
-        period=str(r.get('PRD_DE',''));freq=r.get('PRD_SE','')
+        period=str(r.get('PRD_DE',''));freq={'A':'Y'}.get(str(r.get('PRD_SE','')).upper(),str(r.get('PRD_SE','')).upper())
         try:
             if freq=='Y' and re.fullmatch(r'\d{4}',period):date=pd.Timestamp(period+'-01-01')
             elif freq=='M' and re.fullmatch(r'\d{6}',period):date=pd.to_datetime(period,format='%Y%m')
