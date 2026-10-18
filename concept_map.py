@@ -44,7 +44,7 @@ LINKS=[
 (23,11,'규모 대비 비율','투자·부채의 GDP 대비 비율은 경제 규모 대비 수준을 보여준다.'),
 ]
 
-def html(terms):
+def flat_html(terms):
     nodes=[dict(id=i,category=t[0],name=t[1],meaning=t[3],impact=t[4],reading=t[5]) for i,t in enumerate(terms)]
     payload=json.dumps({'nodes':nodes,'edges':LINKS},ensure_ascii=False).replace('<','\\u003c')
     return '''<!doctype html><html lang="ko"><meta charset="utf-8"><style>
@@ -62,3 +62,8 @@ edges.forEach(e=>{let [a,b,label,note]=e,[x,y]=pos[a],[xx,yy]=pos[b],path=`M${x}
 ids.forEach(id=>{let n=data.nodes[id],[x,y]=pos[id],g=el('g',{class:'node',tabindex:0,role:'button','aria-label':n.name,transform:`translate(${x},${y})`});let theme={'물가':['#fff0e6','#ed8a4d','pill'],'금리·채권':['#eeeaff','#9c88e5','hex'],'경기·고용':['#e5f6ed','#72bd96','round'],'무역·통화':['#e5f2ff','#79acda','hex'],'시장':['#fde9f1','#d58caa','round'],'읽는 법':['#fff6d6','#cfb65f','pill']}[n.category]||['white','#cbd4db','round'];let attrs={class:'shape',fill:id===focus?'#ffe1cc':theme[0],stroke:id===focus?'#ff6600':theme[1],'stroke-width':id===focus?2.5:1.3,filter:'url(#shadow)'};if(theme[2]==='hex'){el('polygon',{...attrs,points:'-112,0 -94,-31 94,-31 112,0 94,31 -94,31'},g)}else{el('rect',{...attrs,x:-112,y:-31,width:224,height:62,rx:theme[2]==='pill'?31:16},g)};let t=el('text',{'text-anchor':'middle',y:-3,fill:'#152d43','font-size':n.name.length>24?11:13,'font-weight':600},g);t.textContent=n.name;let c=el('text',{'text-anchor':'middle',y:16,fill:'#657383','font-size':11},g);c.textContent=n.category;g.addEventListener('mousemove',e=>show(e,n.name,n.meaning));g.addEventListener('mouseleave',hide);function choose(){select.value=id;detail.textContent=n.name+'：'+n.meaning+' 市場 영향：'+n.impact+' 읽는 법：'+n.reading;draw()}g.addEventListener('click',choose);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}});g.addEventListener('focus',()=>{detail.textContent=n.name+'：'+n.meaning})});}
 select.onchange=()=>draw();document.getElementById('all').onclick=()=>draw(true);document.getElementById('reset').onclick=()=>{select.value=0;draw()};draw();
 </script></html>'''.replace('PAYLOAD',payload).replace('市場 영향','시장 영향')
+
+
+def html(terms):
+    from concept_space import space_html
+    return space_html(terms,LINKS)
