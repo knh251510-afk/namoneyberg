@@ -1,8 +1,10 @@
-"""Compact service directory, using SEED typography and neutral surfaces."""
+"""One briefing feature and four consistently sized tool groups."""
 from html import escape
 import streamlit as st
+from theme_assets import image_path
+from ui_theme import mode
 
-ARTS={'브리핑':('reading','금융가 풍경'),'데이터':('data','통계와 시장 데이터'),'기업 분석':('data','기업 재무 데이터'),'발표 일정':('reading','시장과 정책 발표'),'개념 지도':('connections','경제 개념의 연결')}
+ARTS={'브리핑':('reading','금융가 풍경'),'데이터':('data','통계와 시장 데이터'),'기업 분석':('corporate','기업 재무제표와 계산기'),'발표 일정':('calendar','경제 발표 캘린더와 시계'),'개념 지도':('connections','경제 개념의 연결')}
 GROUPS=[
  ('브리핑',[('마켓 오버뷰','이번 주 이슈와 시장 해설','overview'),('뉴스','기사 검색과 원문 확인','news')]),
  ('데이터',[('경제지표','국가별 물가·금리·성장 흐름','indicators'),('국가 통계','KOSIS 통계표 검색과 기간별 분석','statistics'),('시장 시세','주가지수·환율·원자재 가격','quotes'),('데이터 비교','서로 다른 지표를 골라 한눈에 비교','compare')]),
@@ -10,89 +12,61 @@ GROUPS=[
  ('발표 일정',[('발표 일정','주요 지표 발표값과 정책회의 결정','calendar')]),
  ('개념 지도',[('개념 지도','용어의 뜻과 개념 사이의 관계','glossary')]),
 ]
+DESCRIPTIONS={'데이터':'국가별 지표와 통계를 살펴보고, 필요한 시계열을 비교합니다.','기업 분석':'기업 재무제표를 연도별로 정리하고 엑셀로 가져갑니다.','발표 일정':'발표된 수치와 정책회의 결정, 앞으로의 일정을 확인합니다.','개념 지도':'경제 용어의 뜻과 개념 사이의 관계를 지도로 살펴봅니다.'}
 
 def render(pages):
+    by_path={p.url_path:p for p in pages}
     st.markdown('''<style>
-.home-intro{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr);gap:64px;align-items:start;padding:24px 0 36px;margin-bottom:32px;border-bottom:1px solid var(--nb-border)}
-.home-intro h1{font-size:30px!important;font-weight:650!important;line-height:1.4!important;letter-spacing:-.8px!important;margin:0 0 14px!important;padding:0!important}
-.home-intro p{font-size:15px!important;line-height:1.8!important;color:var(--nb-muted);max-width:500px;margin:0!important;word-break:keep-all}
-.home-quick{border-left:2px solid var(--seed-color-palette-carrot-300);padding-left:24px}
-.home-quick .quick-label{font-size:12px;color:var(--nb-muted);margin-bottom:8px}
-.home-quick a{display:flex;align-items:center;justify-content:space-between;padding:11px 0;font-size:14px;font-weight:550;color:var(--nb-text)!important;text-decoration:none!important;border-bottom:1px solid var(--nb-border)}
-.home-quick a:last-child{border:0}.home-quick a span{color:var(--nb-muted);font-weight:400}
-.home-directory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:36px;margin-bottom:36px}
-.home-group h2{font-size:14px!important;font-weight:600!important;color:var(--nb-muted)!important;padding:0 0 14px!important;margin:0!important;border-bottom:1px solid var(--nb-border)}
-.home-tool{display:block;padding:20px 0;border-bottom:1px solid var(--nb-border);color:var(--nb-text)!important;text-decoration:none!important}
-.home-tool .tool-title{display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:600;line-height:1.5;letter-spacing:-.25px}
-.home-tool .tool-arrow{font-size:16px;color:var(--seed-color-palette-gray-600);font-weight:400;transition:transform .15s ease}
-.home-tool p{font-size:13px!important;font-weight:400;line-height:1.65!important;color:var(--nb-muted);margin:6px 20px 0 0!important;word-break:keep-all}
-.home-tool:hover .tool-title,.home-quick a:hover{color:var(--seed-color-palette-carrot-800)!important}
-.home-tool:hover .tool-arrow{transform:translateX(3px);color:var(--seed-color-palette-carrot-800)}
-.home-tool:focus-visible,.home-quick a:focus-visible{outline:2px solid var(--seed-color-palette-carrot-800);outline-offset:4px;border-radius:3px}
-.home-note{display:flex;gap:28px;padding:20px 0;border-top:1px solid var(--nb-border);font-size:12px;color:var(--nb-muted);line-height:1.8;flex-wrap:wrap}
-.home-note b{font-weight:500;color:var(--nb-text)}
-@media(max-width:800px){.home-intro{grid-template-columns:1fr;gap:24px}.home-quick{max-width:440px}.home-directory{grid-template-columns:1fr;gap:28px}.home-intro h1{font-size:26px!important}.home-tool{padding:16px 0}.home-note{gap:8px;flex-direction:column}}
-@media(prefers-reduced-motion:reduce){.home-tool .tool-arrow{transition:none}}
-
-.home-art{margin:0 0 20px;overflow:hidden;height:144px;background:#f8f6f2;border-radius:5px}
-.home-art img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 400ms cubic-bezier(.2,.7,.3,1)}
-.home-tool .tool-title{gap:8px}.home-tool .tool-title>span:first-child{flex:1}
-.tool-preview{width:46px;height:24px;color:var(--seed-color-palette-carrot-800);opacity:.45;flex-shrink:0;overflow:visible}
-.tool-preview path,.tool-preview rect,.tool-preview circle{vector-effect:non-scaling-stroke}
-@keyframes ink-trace{from{stroke-dashoffset:110}to{stroke-dashoffset:0}}
-@keyframes paper-read{0%{transform:translateY(2px);opacity:.3}100%{transform:translateY(0);opacity:1}}
-@keyframes bar-grow{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
-@keyframes node-signal{0%,100%{opacity:.4}50%{opacity:1}}
-@media(prefers-reduced-motion:no-preference){
- .home-tool:hover .tool-preview,.home-tool:focus-visible .tool-preview{opacity:1}
- .home-tool:hover .trace,.home-tool:focus-visible .trace{stroke-dasharray:110;animation:ink-trace 650ms ease-out both}
- .home-tool:hover .paper,.home-tool:focus-visible .paper{animation:paper-read 400ms ease-out both}
- .home-tool:hover .bar,.home-tool:focus-visible .bar{transform-origin:center bottom;animation:bar-grow 450ms ease-out both;transform-box:fill-box}
- .home-tool:hover .signal,.home-tool:focus-visible .signal{animation:node-signal 900ms ease-in-out 2}
- .home-group:has(.home-tool:hover) .home-art img{transform:scale(1.035)}
-}
-@media(prefers-reduced-motion:reduce){.home-art img{transition:none}.tool-preview *{animation:none!important}}
-@media(max-width:800px){.home-art{height:160px;max-width:480px}.tool-preview{opacity:.65}}
-</style>
-<section class="home-intro"><div><h1>경제 데이터와 시장 해설</h1><p>주간 브리핑부터 국가 통계와 시장 시세까지.<br>필요한 자료를 찾아보고, 지표를 직접 비교할 수 있습니다.</p></div>
-</section>
-''',unsafe_allow_html=True)
-    icons={
-        'corporate':'<rect class="bar" x="7" y="12" width="6" height="9"/><rect class="bar" x="20" y="7" width="6" height="14"/><path class="trace" d="M4 17L19 10L40 3"/>',
-        'overview':'<path class="paper" d="M7 3h28v18H7zM12 8h18M12 12h13M12 16h17"/>',
-        'news':'<path class="paper" d="M5 4h35v17H5zM10 8h10v6H10zM24 8h11M24 12h11M10 18h25"/>',
-        'calendar':'<path d="M8 5h28v17H8zM8 10h28M15 2v6M29 2v6"/><circle class="signal" cx="22" cy="16" r="2"/>',
-        'indicators':'<path class="trace" d="M4 19L13 13L22 15L30 7L41 4"/>',
-        'statistics':'<rect class="bar" x="7" y="13" width="6" height="8"/><rect class="bar" x="20" y="7" width="6" height="14"/><rect class="bar" x="33" y="3" width="6" height="18"/>',
-        'quotes':'<path class="trace" d="M3 18L11 10L19 15L27 5L35 12L43 4"/>',
-        'compare':'<path class="trace" d="M3 18L14 14L25 16L42 4M3 8L14 12L25 5L42 14"/>',
-        'glossary':'<path class="trace" d="M9 15L23 6L38 17M23 6L25 21"/><circle class="signal" cx="9" cy="15" r="3"/><circle class="signal" cx="23" cy="6" r="3"/><circle class="signal" cx="38" cy="17" r="3"/>',
-    }
-    from pathlib import Path
-    by_path={page.url_path:page for page in pages}
-    by_path['home']=pages[0]
+.home-intro{padding:14px 0 26px!important;margin-bottom:8px!important;border-bottom:0!important;display:block!important}
+.home-intro h1{font-size:28px!important;letter-spacing:-.7px;line-height:1.4;margin:0 0 10px!important;padding:0!important}
+.home-intro p{font-size:14px!important;color:var(--nb-muted);margin:0!important;line-height:1.7}
+.st-key-home_featured{padding:2px 0}
+.st-key-home_featured img{height:210px!important;width:100%!important;object-fit:cover;border-radius:6px}
+.st-key-home_featured h2{font-size:21px!important;line-height:1.5!important;padding:0!important;margin:3px 0!important}
+.st-key-home_featured [data-testid="stCaptionContainer"] p{font-size:12px!important}
+.st-key-home_featured [data-testid="stMarkdownContainer"] p{font-size:14px!important;line-height:1.75}
+.home-tools-heading{font-size:18px!important;margin:24px 0 4px!important;padding:0!important}
+.st-key-home_group_indicators,.st-key-home_group_corporate,.st-key-home_group_calendar,.st-key-home_group_glossary{min-height:350px!important;gap:12px!important}
+.home-group-title{font-size:18px!important;font-weight:650!important;color:var(--nb-text)!important;line-height:1.5!important;padding:0!important;margin:0!important}
+[class*="st-key-home_group_"] img{height:145px!important;width:100%!important;object-fit:cover;border-radius:5px;transition:filter 150ms ease-out}
+[class*="st-key-home_group_"] [data-testid="stCaptionContainer"] p{font-size:13px!important;line-height:1.7!important;min-height:42px;margin:0!important}
+[class*="st-key-home_group_"] [data-testid="stPageLink"] a{min-height:40px!important;padding:8px 10px!important;border-radius:5px;background:var(--nb-surface);color:var(--nb-text)!important}
+[class*="st-key-home_group_"] [data-testid="stPageLink"] a:hover{background:var(--nb-soft)!important;color:var(--nb-accent)!important}
+[class*="st-key-home_group_"] [data-testid="stPageLink"] a p{font-size:13px!important;font-weight:550!important;color:inherit!important}
+.home-note{font-size:12px;color:var(--nb-muted);padding:18px 0;border-top:1px solid var(--nb-border);line-height:1.7}
+@media(max-width:700px){.home-intro h1{font-size:25px!important}.st-key-home_featured img{height:165px!important}.st-key-home_group_indicators,.st-key-home_group_corporate,.st-key-home_group_calendar,.st-key-home_group_glossary{min-height:0!important}.home-group-title{font-size:17px!important}}
+</style><section class="home-intro"><h1>경제 데이터와 시장 해설</h1><p>시장을 읽고, 데이터를 비교하고, 경제의 연결을 이해합니다.</p></section>''',unsafe_allow_html=True)
     import briefing_store
     latest=briefing_store.latest()
-    if latest:
-        with st.container(key='home_latest_brief',border=True):
-            st.caption('최근 게시 브리핑')
-            st.markdown('### '+latest['report']['headline'])
-            st.write(latest['report']['summary'][:180])
-            st.caption('최신화 '+latest['generated_at'][:16].replace('T',' '))
-            if 'overview' in by_path:st.page_link(by_path['overview'],label='브리핑 읽기 →')
-    for offset in range(0,len(GROUPS),3):
-        for column,(heading,items) in zip(st.columns(min(3,len(GROUPS)-offset),gap='large'),GROUPS[offset:offset+3]):
+    with st.container(key='home_featured',border=True):
+        picture,content=st.columns([1,2],gap='large',vertical_alignment='center')
+        with picture:st.image(str(image_path('home-reading',mode())),width='stretch')
+        with content:
+            st.caption('브리핑')
+            headline=latest['report']['headline'] if latest else '이번 주 시장의 흐름을 살펴보세요'
+            st.markdown('## '+headline)
+            if latest:
+                summary=latest['report']['summary']
+                st.write(summary[:130].rsplit(' ',1)[0]+'…' if len(summary)>130 else summary)
+                st.caption('최신화 '+latest['generated_at'][:16].replace('T',' ')+' KST')
+            else:st.caption('게시된 시장 해설과 관련 뉴스를 확인합니다.')
+            first,second=st.columns(2)
+            if 'overview' in by_path:
+                with first:st.page_link(by_path['overview'],label='마켓 오버뷰 →')
+            if 'news' in by_path:
+                with second:st.page_link(by_path['news'],label='뉴스 →')
+    st.markdown('<h2 class="home-tools-heading">분석 도구</h2>',unsafe_allow_html=True)
+    tools=GROUPS[1:]
+    for offset in range(0,len(tools),2):
+        for column,(heading,items) in zip(st.columns(2,gap='large'),tools[offset:offset+2]):
             with column:
-                with st.container(key='home_group_'+items[0][2]):
-                    asset,alt=ARTS[heading]
-                    from theme_assets import image_path
-                    from ui_theme import mode
+                with st.container(key='home_group_'+items[0][2],border=True):
+                    asset,_=ARTS[heading]
                     st.image(str(image_path('home-'+asset,mode())),width='stretch')
                     st.markdown('<h2 class="home-group-title">'+escape(heading)+'</h2>',unsafe_allow_html=True)
-                    for label,description,path in items:
-                        if path not in by_path:continue
-                        with st.container(key='home_tool_'+path):
-                            st.page_link(by_path[path],label=label+'　→')
-                            st.caption(description)
-                            st.markdown('<svg class="tool-preview" viewBox="0 0 46 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">'+icons[path]+'</svg>',unsafe_allow_html=True)
-    st.markdown('<div class="home-note"><span><b>통계 출처</b>　World Bank · BIS · FRED · ECOS · KOSIS</span><span>각 화면에서 자료의 기준 시점과 원문을 확인할 수 있습니다.</span></div>',unsafe_allow_html=True)
+                    st.caption(DESCRIPTIONS[heading])
+                    for index in range(0,len(items),2):
+                        for link_col,(label,_,path) in zip(st.columns(2),items[index:index+2]):
+                            if path in by_path:
+                                with link_col:st.page_link(by_path[path],label=label+' →')
+    st.markdown('<div class="home-note">통계 출처　World Bank · BIS · FRED · ECOS · KOSIS<br>각 화면에서 자료의 기준 시점과 원문을 확인할 수 있습니다.</div>',unsafe_allow_html=True)

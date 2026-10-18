@@ -24,8 +24,11 @@ st.write(ui_theme.mode())
   app.button[0].click().run()
   self.assertFalse(app.exception);self.assertEqual(app.session_state['color_mode'],'dark')
   app.button[0].click().run();self.assertEqual(app.session_state['color_mode'],'light')
+ def test_home_groups_have_distinct_artwork(self):
+  from landing_ui import ARTS
+  self.assertEqual(len({asset for asset,_ in ARTS.values()}),len(ARTS))
  def test_images_stay_local(self):
-  for name in ['home-reading','home-data','home-connections','brief-macro','brief-global','brief-industry']:
+  for name in ['home-reading','home-data','home-connections','home-corporate','home-calendar','brief-macro','brief-global','brief-industry']:
    for mode in ['light','dark']:
     path=image_path(name,mode)
     self.assertTrue(path.exists());self.assertTrue(path.name.endswith('-'+mode+'.jpg'))
