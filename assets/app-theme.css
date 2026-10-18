@@ -548,3 +548,16 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 .st-key-theme_switch button p{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
 .st-key-theme_switch button [data-testid="stIconMaterial"]{font-size:20px!important}
 .st-key-overview_categories .react-aria-SelectionIndicator{background:var(--nb-text)!important;height:2px!important;transition:translate 220ms cubic-bezier(.2,.7,.3,1),transform 220ms cubic-bezier(.2,.7,.3,1),width 220ms cubic-bezier(.2,.7,.3,1)!important}
+
+/* Center native button contents, not only the outer button box. */
+.st-key-overview_toolbar .st-key-brief_generation,[data-testid="stPopover"]:has(button[aria-haspopup="dialog"]){min-width:0}
+.st-key-overview_toolbar .st-key-brief_generation [data-testid="stButton"],.st-key-overview_toolbar [data-testid="stPopover"]{width:100%!important}
+.st-key-overview_toolbar .st-key-brief_generation button,.st-key-overview_toolbar [data-testid="stPopover"] button{width:100%!important;justify-content:center!important;text-align:center!important}
+.st-key-overview_toolbar .st-key-brief_generation button>div,.st-key-overview_toolbar [data-testid="stPopover"] button>div{width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important}
+.st-key-overview_toolbar .st-key-brief_generation button [data-has-shortcut]{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;margin:0!important}
+.st-key-overview_toolbar .st-key-brief_generation button [data-testid="stMarkdownContainer"]{margin:0!important;padding:0!important;flex:0 0 auto!important}
+.st-key-overview_toolbar .st-key-brief_generation button p{margin:0!important;padding:0!important;text-align:center!important;line-height:20px!important}
+.st-key-theme_switch [data-testid="stButton"]{width:100%!important;display:flex!important;justify-content:center!important}
+.st-key-theme_switch button>div,.st-key-theme_switch button [data-has-shortcut]{width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important;margin:0!important;padding:0!important}
+.st-key-theme_switch button [data-testid="stMarkdownContainer"]{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important}
+.st-key-theme_switch button [data-testid="stIconMaterial"]{display:block!important;width:20px!important;height:20px!important;line-height:20px!important;margin:0!important;padding:0!important;flex:0 0 20px!important}

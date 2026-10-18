@@ -17,6 +17,8 @@ def timeseries(frame,x,y,unit,group=None,color=None,height=350,domain=None):
     lo,hi=(pd.Timestamp(domain[0]),pd.Timestamp(domain[1])) if domain else (pd.Timestamp('2000-01-01'),today)
     lo=max(lo,pd.Timestamp('2000-01-01'));hi=min(hi,today)
     tip=([alt.Tooltip(group+':N',title='계열')] if group else [])+[alt.Tooltip(x+':T',title='날짜',format='%Y-%m-%d'),alt.Tooltip(y+':Q',title=unit,format=',.4f')]
+    for field in ('기준일', '시작 대비 차이', '시작 대비 변화율'):
+        if field in f.columns:tip.append(alt.Tooltip(field+':N', title=field))
     base=alt.Chart(f).encode(x=alt.X(x+':T',title=None,scale=alt.Scale(domain=[alt.DateTime(year=lo.year,month=lo.month,date=lo.day),alt.DateTime(year=hi.year,month=hi.month,date=hi.day)],nice=False)),y=alt.Y(y+':Q',title=unit,scale=alt.Scale(zero=False)))
     if group:base=base.encode(color=alt.Color(group+':N',legend=alt.Legend(orient='bottom')))
     if group:
@@ -32,7 +34,7 @@ def timeseries(frame,x,y,unit,group=None,color=None,height=350,domain=None):
     extrema=[]
     for _,sub in groups:
         for kind,idx in [('최고',sub[y].idxmax()),('최저',sub[y].idxmin())]:
-            row=sub.loc[idx].to_dict();row['극값']=kind;row['표시']=f'{kind} {row[y]:,.2f}';extrema.append(row)
+            row=sub.loc[idx].to_dict();row['극값']=kind;row['표시']=f'{kind} {row[y]:,.2f}{unit if unit == "%" else " " + unit}';extrema.append(row)
     e=pd.DataFrame(extrema)
     for kind,dy in [('최고',-13),('최저',16)]:
         b=alt.Chart(e[e['극값']==kind]).encode(x=x+':T',y=y+':Q',tooltip=[alt.Tooltip('극값:N')]+tip)
