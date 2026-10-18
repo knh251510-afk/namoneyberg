@@ -31,11 +31,12 @@ def category_picker():
         uri=category_image(asset,mode())
         rules.append('.st-key-brief_category_'+asset+' button::before{background-image:url("'+uri+'")!important;}')
     st.markdown('<style>'+''.join(rules)+'</style>',unsafe_allow_html=True)
-    cols=st.columns(3)
-    for col,(label,asset) in zip(cols,CATEGORIES.items()):
-        with col:
-            with st.container(key='brief_category_'+asset):
-                st.button(label,key='choose_brief_'+asset,on_click=choose,args=(label,),width='stretch')
+    with st.container(key='brief_categories'):
+        cols=st.columns(3)
+        for col,(label,asset) in zip(cols,CATEGORIES.items()):
+            with col:
+                with st.container(key='brief_category_'+asset):
+                    st.button(label,key='choose_brief_'+asset,on_click=choose,args=(label,),width='stretch')
     return selected
 
 

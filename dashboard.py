@@ -279,7 +279,9 @@ def render_page(page,embedded=False):
         with st.container(key='overview_toolbar'):
             overview_meta_slot,overview_action_slot=st.columns([4,2],vertical_alignment='bottom')
             with overview_action_slot:
-                generate_requested=briefing_controls.request_generation(bool(articles))
+                generation_slot,archive_slot=st.columns([1.5,1])
+                with generation_slot:
+                    generate_requested=briefing_controls.request_generation(bool(articles))
         if generate_requested:
             if not admin_auth.is_admin():st.stop()
             try:
@@ -314,8 +316,9 @@ def render_page(page,embedded=False):
         reports=briefing_store.archive()
         saved=reports[0] if reports else None
         if len(reports)>1:
-            with st.expander('지난 브리핑',expanded=False):
-                chosen=st.selectbox('브리핑 선택',range(len(reports)),format_func=lambda i:reports[i].get('period',{}).get('start','')[:10]+' · '+reports[i]['report']['headline'])
+            with archive_slot:
+                with st.popover('지난 브리핑'):
+                    chosen=st.selectbox('브리핑 선택',range(len(reports)),format_func=lambda i:reports[i].get('period',{}).get('start','')[:10]+' · '+reports[i]['report']['headline'])
             saved=reports[chosen]
         if saved and saved.get('period',{}).get('start','')[:10]!=start.date().isoformat():
             briefing_ui.metadata('이전 게시 브리핑')
