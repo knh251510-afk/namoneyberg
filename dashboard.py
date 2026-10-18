@@ -21,11 +21,13 @@ import briefing_store
 st.set_page_config(page_title='NAMONEYBERG',page_icon='🌐',layout='wide')
 ui_theme.apply()
 with st.container(key='site_header'):
-    logo_col,menu_col=st.columns([2,8],vertical_alignment='center')
+    logo_col,menu_col,theme_col=st.columns([2,7,1],vertical_alignment='center')
     with logo_col:
         logo_slot=st.container(key='brand_home')
     with menu_col:
         nav_slot=st.container(key='main_navigation')
+    with theme_col:
+        with st.container(key='theme_switch'):ui_theme.control()
 market_ui.ticker()
 
 @st.cache_data(ttl=1800,show_spinner=False)

@@ -1,11 +1,18 @@
-"""NAMONEYBERG 공통 디자인. 단일 스타일 정의로 레이아웃 충돌 방지."""
+"""Shared app/chart themes, controlled without paid API calls."""
 import streamlit as st
 import altair as alt
-PALETTE=['#23705f','#386cb0','#8761a6','#b07924','#b45270','#30858c','#74802d','#687887']
+from theme_tokens import colors,PALETTES
+PALETTE=PALETTES['light']
+def mode():return st.session_state.get('color_mode','light')
+def toggle():
+    st.session_state['color_mode']='dark' if mode()=='light' else 'light'
+def control():
+    dark=mode()=='dark'
+    st.button('라이트' if dark else '다크',icon=':material/light_mode:' if dark else ':material/dark_mode:',help='화면과 이미지 시간대 전환',on_click=toggle,key='theme_toggle')
 def apply():
     import seed_theme
-    seed_theme.apply()
+    seed_theme.apply(mode())
+    t=colors(mode())
     def portal():
-        return {'config':{'background':'#ffffff','font':'Pretendard','view':{'stroke':None},'range':{'category':PALETTE},'axis':{'labelColor':'#65716c','titleColor':'#46554e','gridColor':'#e8eeea','domainColor':'#becbc3','labelFont':'Pretendard','titleFont':'Pretendard'},'legend':{'labelColor':'#65716c','labelFont':'Pretendard','titleFont':'Pretendard'},'title':{'color':'#202927','font':'Pretendard'}}}
-    alt.themes.register('macro_portal',portal)
-    alt.themes.enable('macro_portal')
+        return {'config':{'background':t['bg'],'font':'Pretendard','view':{'stroke':None},'range':{'category':PALETTES[mode()]},'axis':{'labelColor':t['muted'],'titleColor':t['text'],'gridColor':t['grid'],'domainColor':t['border'],'labelFont':'Pretendard','titleFont':'Pretendard'},'legend':{'labelColor':t['muted'],'labelFont':'Pretendard','titleFont':'Pretendard'},'title':{'color':t['text'],'font':'Pretendard'}}}
+    alt.themes.register('macro_portal',portal);alt.themes.enable('macro_portal')

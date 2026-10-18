@@ -334,9 +334,9 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 .comparison-table,.calendar-table{background:var(--night-panel)!important;color:var(--night-text)!important}
 .comparison-table th,.calendar-table th{background:var(--night-raised)!important;color:var(--night-muted)!important}
 .comparison-table td,.calendar-table td{background:var(--night-panel)!important;color:var(--night-text)!important;border-color:var(--night-border)!important}
-.comparison-table tr:nth-child(even) td,.calendar-table tr:nth-child(even) td{background:#fafcfb!important}
+.comparison-table tr:nth-child(even) td,.calendar-table tr:nth-child(even) td{background:var(--nb-surface)!important}
 .comparison-table .cell-value{color:var(--night-text)!important}
-.st-key-footer_navigation,.terminal-footer{background:#fffffff5!important;color:var(--night-muted)!important;border-color:var(--night-border)!important}
+.st-key-footer_navigation,.terminal-footer{background:var(--nb-bg)!important;color:var(--night-muted)!important;border-color:var(--night-border)!important}
 [data-testid="stExpander"] details{background:var(--night-panel)!important}
 [data-testid="stTabs"] [role="tab"][aria-selected="true"]{background:var(--night-raised)!important;color:var(--night-text)!important;box-shadow:none}
 [data-testid="stTextInput"] [data-baseweb="input"],[data-testid="stNumberInput"] [data-baseweb="input"],[data-testid="stSelectbox"] [data-baseweb="select"]>div,[data-testid="stMultiSelect"] [data-baseweb="select"]>div{background:var(--night-panel)!important}
@@ -431,7 +431,7 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
  transition:background-color 140ms ease-out,color 140ms ease-out!important;
 }
 .st-key-main_navigation a:hover,.st-key-main_navigation button:hover{
- background:#f1f4f2!important;color:var(--nb-text)!important;box-shadow:none!important;
+ background:var(--nb-hover)!important;color:var(--nb-text)!important;box-shadow:none!important;
 }
 .st-key-main_navigation a:focus-visible,.st-key-main_navigation button:focus-visible{
  outline:2px solid var(--nb-accent)!important;box-shadow:none!important;
@@ -448,3 +448,14 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 [data-testid="stExpander"] details{background:var(--nb-surface)!important;border:1px solid var(--nb-border)!important}
 [data-testid="stExpander"] summary{color:var(--nb-text)!important}
 @media(max-width:800px){.quote-track{animation:none!important}.quote-ticker{overflow-x:auto}.st-key-brief_downloads button,.st-key-brief_generation button{min-height:44px!important}}
+
+/* Both themes share native widget semantics and local artwork. */
+.stApp input,.stApp textarea,.stApp [data-baseweb="select"],.stApp label,[role="option"]{color:var(--nb-text)!important}
+.stApp [data-testid="stAlert"]{background:var(--nb-soft)!important;color:var(--nb-text)!important}
+[data-testid="stButton"] button[kind="primary"],.st-key-brief_generation button{color:var(--nb-on-accent)!important}
+[class*="st-key-home_group_"] img{animation:art-reveal 200ms ease-out}
+@keyframes art-reveal{from{opacity:.7}to{opacity:1}}
+.st-key-theme_switch button{min-width:70px;min-height:40px;font-size:12px!important;border:1px solid var(--nb-border)!important;background:var(--nb-surface)!important;color:var(--nb-text)!important}
+@media(prefers-reduced-motion:reduce){[class*="st-key-home_group_"] img{animation:none}}
+
+@media(max-width:800px){.st-key-site_header{position:relative}.st-key-site_header [data-testid="stColumn"]:has(.st-key-theme_switch){position:absolute!important;right:0;top:0;width:auto!important;min-width:0!important;flex:0 0 auto!important}.st-key-brand_home{padding-right:85px}}

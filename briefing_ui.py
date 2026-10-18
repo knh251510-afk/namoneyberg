@@ -12,8 +12,9 @@ def metadata(text):
     st.markdown('<div class="brief-metadata">'+escape(text)+'</div>',unsafe_allow_html=True)
 
 @st.cache_data(show_spinner=False)
-def category_image(asset):
-    source=Path(__file__).parent/'static'/f'brief-{asset}.png'
+def category_image(asset,mode='light'):
+    from theme_assets import image_path
+    source=image_path('brief-'+asset,mode)
     image=Image.open(source).convert('RGB')
     image.thumbnail((640,400))
     out=BytesIO();image.save(out,format='JPEG',quality=72,optimize=True)
@@ -23,10 +24,11 @@ def category_picker():
     selected=st.session_state.get('brief_category','매크로')
     def choose(value):st.session_state['brief_category']=value
     active=CATEGORIES[selected]
-    st.markdown(f'<style>.st-key-brief_category_{active} button{{border:2px solid var(--seed-color-bg-brand-solid)!important;box-shadow:inset 0 -4px 0 var(--seed-color-bg-brand-solid)!important}}.st-key-brief_category_{active} button p{{color:var(--seed-color-palette-carrot-800)!important}}</style>',unsafe_allow_html=True)
+    st.markdown(f'<style>.st-key-brief_category_{active} button{{border:2px solid var(--seed-color-bg-brand-solid)!important;box-shadow:inset 0 -4px 0 var(--seed-color-bg-brand-solid)!important}}.st-key-brief_category_{active} button p{{color:#fff!important}}</style>',unsafe_allow_html=True)
     rules=[]
     for asset in CATEGORIES.values():
-        uri=category_image(asset)
+        from ui_theme import mode
+        uri=category_image(asset,mode())
         rules.append(f'.st-key-brief_category_{asset} button,.st-key-brief_category_{asset} button:hover'+ '{background-image:url("'+uri+'")!important;}')
     st.markdown('<style>'+''.join(rules)+'</style>',unsafe_allow_html=True)
     cols=st.columns(3)
