@@ -69,6 +69,10 @@ def render():
     with st.spinner('공식 발표 일정 조회 중…'):frame,status=load()
     countries=st.multiselect('경제권', ['한국','미국','일본','유로존','영국'],default=['한국','미국','일본','유로존','영국'])
     frame=frame[frame.country.isin(countries)]
+    from calendar_explain import explain,importance
+    minimum=st.segmented_control('중요도',['전체','중요 이상','매우 중요'],default='전체') or '전체'
+    threshold={'전체':1,'중요 이상':2,'매우 중요':3}[minimum]
+    frame=frame[frame.title.map(lambda title:explain(title)[0]>=threshold)]
     current=data.now();earliest=(pd.Timestamp(current.date())-pd.DateOffset(years=1)).date()
     if mode=='직접 선택':
         bounds=st.date_input('조회 기간',(earliest,current.date()),min_value=earliest,max_value=(current+timedelta(days=90)).date())
@@ -84,19 +88,21 @@ def render():
     from html import escape
     import calendar_values
     with st.spinner('지난 발표 실적을 연결하고 있습니다…'):lookup=calendar_values.collect(frame[frame.country=='미국'],current)
-    st.caption('실적은 현재 통계 DB의 수정 반영값 · 증감은 직전 대상월 대비')
+    import calendar_international_values
+    international=calendar_international_values.collect(frame,current)
+    st.caption('중요도 ●●● 높음 · ●●○ 보통 · ●○○ 참고 | 지표 이름에 커서를 올리면 설명을 볼 수 있습니다.')
     for day,group in frame.groupby(frame.when.dt.strftime('%Y.%m.%d'),sort=False):
         weekday=group.iloc[0]['when'].weekday()
         st.markdown('<div class="calendar-day">'+day+' <span>'+['월','화','수','목','금','토','일'][weekday]+'요일</span></div>',unsafe_allow_html=True)
         rows=[]
         for _,row in group.iterrows():
             past=row['when']<current
-            val=calendar_values.values(row,lookup) if past and row['country']=='미국' else None
+            val=(calendar_values.values(row,lookup) if row['country']=='미국' else calendar_international_values.values(row,international)) if past else None
             name=row['title'].split(' · ')[0]
             if val:
                 name=val['name'];period=val['period']
                 actual=f'{val["value"]:,.2f} <small>{val["unit"]}</small>'
-                previous='—' if pd.isna(val['previous']) else f'{val["previous"]:,.2f}'
+                previous='—' if val['previous'] is None or pd.isna(val['previous']) else f'{val["previous"]:,.2f}'
                 delta=val['change']
                 cls='rise' if delta is not None and delta>0 else ('fall' if delta is not None and delta<0 else 'flat')
                 change='—' if delta is None else f'{delta:+,.2f} {val["delta_unit"]}'
@@ -106,9 +112,13 @@ def render():
                 period='';actual='—';previous='—';change='—';cls='flat'
             badge='지난 일정' if past else '발표 예정'
             clock=row['when'].strftime('%H:%M') if row.get('time_known',True) else '시간 미정'
-            rows.append(f'<tr><td class="cal-time">{clock}<small>{escape(row["country"])}</small></td><td class="cal-title">{escape(name)}<small>{escape(period)} · {badge}</small></td><td class="cal-number">{actual}</td><td class="cal-number">{previous}</td><td class="cal-number {cls}">{change}</td></tr>')
-        st.markdown('<div class="calendar-table-wrap"><table class="calendar-table"><thead><tr><th>시간</th><th>경제지표</th><th>실적 · 수정 반영</th><th>이전</th><th>전기 대비</th></tr></thead><tbody>'+''.join(rows)+'</tbody></table></div>',unsafe_allow_html=True)
+            score,description=explain(row['title'])
+            currency={'한국':'KRW','미국':'USD','일본':'JPY','유로존':'EUR','영국':'GBP'}.get(row['country'],'')
+            tip='<span class="cal-event-name" tabindex="0">'+escape(name)+'<span class="cal-tooltip" role="tooltip">'+escape(description)+'</span></span>'
+            rows.append(f'<tr><td class="cal-time">{clock}</td><td class="cal-country">{escape(row["country"])}<small>{currency}</small></td><td class="cal-impact" aria-label="중요도 {score}/3" title="사이트 편집 기준 중요도 {score}/3">{importance(score)}</td><td class="cal-title">{tip}<small>{escape(period)} · {badge} · <a href="{escape(row["url"],quote=True)}" target="_blank" rel="noopener noreferrer">출처 ↗</a></small></td><td class="cal-number">{actual}</td><td class="cal-number">{previous}</td><td class="cal-number {cls}">{change}</td></tr>')
+        st.markdown('<div class="calendar-table-wrap"><table class="calendar-table"><thead><tr><th>시간</th><th>경제권</th><th>중요도</th><th>경제지표</th><th>실적</th><th>이전</th><th>증감</th></tr></thead><tbody>'+''.join(rows)+'</tbody></table></div>',unsafe_allow_html=True)
     with st.expander('실적 출처 · 계산 기준',expanded=False):
+        st.caption('한국 CPI는 BIS의 한국 월간 전년동월비를 발표 대상월과 일치할 때만 표시합니다. 한국 고용·산업활동과 해외 금리 결정의 실적은 아직 연결하지 않았습니다. 발표 일정은 실적 값이 없어도 표시합니다.')
         st.caption('현재 FRED 시계열을 발표 대상월과 연결합니다. 초도 발표 당시 수치와 다를 수 있습니다. GDP 추정차수·복수 대상월 등 일치 여부를 확인하지 못한 항목은 —로 표시합니다. 물가 상승률 간 차이는 %p, 고용 증감 간 차이는 천 명으로 계산합니다.')
         for code,result in lookup.items():
             if result:st.markdown(f'[{code}](https://fred.stlouisfed.org/series/{code})')

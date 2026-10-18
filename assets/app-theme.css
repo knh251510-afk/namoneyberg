@@ -387,14 +387,29 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 [class*="st-key-home_tool_"] div,[class*="st-key-home_tool_"] a{position:static!important}
 [class*="st-key-home_tool_"] a::after{content:"";position:absolute;inset:0;z-index:2;border-radius:5px}
 [class*="st-key-home_tool_"] a:focus-visible::after{outline:2px solid var(--nb-accent);outline-offset:3px}
-[class*="st-key-home_tool_"]:hover{background:var(--nb-surface);box-shadow:inset 3px 0 var(--nb-accent)}
+[class*="st-key-home_tool_"]:hover{background:var(--nb-surface);box-shadow:none}
 [class*="st-key-home_tool_"]:hover a p{color:var(--nb-accent)!important}
 [class*="st-key-home_tool_"] .tool-preview{top:18px!important;right:12px!important}
 [class*="st-key-home_group_"] [data-testid="stImageContainer"]{overflow:hidden;border-radius:5px}
 @media(prefers-reduced-motion:no-preference){
-[class*="st-key-home_tool_"]{transition:transform 180ms ease-out,background-color 180ms ease-out,box-shadow 180ms ease-out}
-[class*="st-key-home_tool_"]:hover{transform:translateY(-3px);padding-left:12px!important}
+[class*="st-key-home_tool_"]{transition:transform 160ms cubic-bezier(.2,.6,.3,1),background-color 160ms ease-out}
+[class*="st-key-home_tool_"]:hover{transform:translateY(-1px)}
 [class*="st-key-home_group_"] [data-testid="stImage"] img{transition:transform 350ms ease-out}
-[class*="st-key-home_group_"]:has([class*="st-key-home_tool_"]:hover) [data-testid="stImage"] img{transform:scale(1.035)}
+[class*="st-key-home_group_"]:has([class*="st-key-home_tool_"]:hover) [data-testid="stImage"] img{transform:scale(1.015)}
 }
 @media(prefers-reduced-motion:reduce){[class*="st-key-home_tool_"]{transition:none!important;transform:none!important}}
+/* Compact economic calendar: country and importance precede the event. */
+.calendar-table{min-width:820px!important;font-size:12px!important}
+.calendar-table th,.calendar-table td{padding:11px 12px!important}
+.calendar-table th:nth-child(-n+4){text-align:left}
+.calendar-table tbody tr:hover td{background:var(--nb-soft)!important}
+.calendar-day{margin-top:20px!important;padding:10px 12px!important;font-size:13px!important;background:var(--nb-soft)!important;color:var(--nb-text)!important}
+.cal-country{white-space:nowrap;font-size:12px;color:var(--nb-text)}
+.cal-impact{color:var(--nb-accent)!important;font-size:10px;letter-spacing:2px;white-space:nowrap;width:72px}
+.cal-title{min-width:230px!important}
+.cal-event-name{position:relative;display:inline-block;cursor:help;border-bottom:1px dotted var(--nb-muted);font-weight:550;outline-offset:3px}
+.cal-tooltip{display:none;position:absolute;top:calc(100% + 8px);left:0;width:310px;padding:14px 16px;border:1px solid var(--nb-border);border-radius:7px;background:var(--nb-soft);color:var(--nb-text);font-size:12px;font-weight:400;line-height:1.75;box-shadow:0 12px 28px #0004;z-index:200;white-space:normal}
+.cal-event-name:hover .cal-tooltip,.cal-event-name:focus .cal-tooltip{display:block}
+.calendar-table-wrap:has(.cal-event-name:hover),.calendar-table-wrap:has(.cal-event-name:focus){overflow:visible}
+.cal-title small a{color:var(--nb-muted)!important}
+@media(max-width:800px){.calendar-table-wrap:has(.cal-event-name:focus){overflow-x:auto}.cal-event-name:focus .cal-tooltip{position:static;width:230px;margin-top:8px}}
