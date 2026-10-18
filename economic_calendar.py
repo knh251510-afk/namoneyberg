@@ -125,7 +125,9 @@ def render():
             if calendar_decisions.is_policy(row['title']):
                 decision=calendar_decisions.result(row,payload.get('decisions',[])) if past else None
                 if decision:
-                    excerpt=decision['summary'] or decision['title']
+                    excerpt=decision['title']
+                    detail=decision['summary']
+                    if detail and detail!=excerpt and 'is responsible for making decisions about Bank Rate' not in detail:excerpt+=' · '+detail
                     cells='<td colspan="3" class="cal-decision"><strong>핵심 결정 · 안건</strong><p>'+escape(excerpt)+'</p><a href="'+escape(decision['url'],quote=True)+'" target="_blank" rel="noopener noreferrer">공식 발표 ↗</a></td>'
                 else:
                     text='공식 결과를 확인 중입니다.' if past else '회의 결과 발표 예정'
