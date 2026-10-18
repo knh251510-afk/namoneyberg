@@ -448,6 +448,8 @@ with nav_slot:
 if st.query_params.get('page')=='settings':
     del st.query_params['page']
     st.switch_page(next(p for p,spec in zip(pages,PAGE_SPECS) if spec[2]=='settings'))
+import footer_ui
+footer_ui.render(pages)
 with st.container(key="page_body"):
     active.run()
 if st.session_state.pop('open_comparison',False):
