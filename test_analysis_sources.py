@@ -24,13 +24,22 @@ class SourceTests(unittest.TestCase):
         cur=extract_financials(rows+[dict(rows[0],thstrm_amount='2000')])
         self.assertIsNone(cur['매출액'])
         self.assertIsNone(financial_ratios({'자본':-1,'순이익':10},{'자본':100})['ROE'])
-    def test_company_resolution_uses_official_directory(self):
+    def test_bundled_company_resolution_has_no_network(self):
         from analysis_sources import resolve_dart_company
-        company={'name':'삼성전자','stock_code':'005930','corp_code':'00126380'}
-        with patch('analysis_sources.dart_companies',return_value=[company]), patch('analysis_sources.httpx.post',side_effect=httpx.ConnectError('unavailable')) as html:
-            self.assertEqual(resolve_dart_company('005930','key'),company)
-            html.assert_called_once()
-            with self.assertRaises(SourceError):resolve_dart_company('000000','key')
+        resolve_dart_company.clear()
+        with patch('analysis_sources.dart_companies') as directory, patch('analysis_sources.httpx.post') as html:
+            company=resolve_dart_company('005930','test-key')
+            self.assertEqual(company['corp_code'],'00126380')
+            html.assert_not_called()
+            directory.assert_not_called()
+
+    def test_company_resolution_falls_back_for_new_listing(self):
+        from analysis_sources import resolve_dart_company
+        resolve_dart_company.clear()
+        company={'name':'신규기업','stock_code':'999998','corp_code':'99999998'}
+        with patch('analysis_sources.dart_companies',return_value=[company]), patch('analysis_sources.httpx.post',side_effect=httpx.ConnectError('unavailable')):
+            self.assertEqual(resolve_dart_company('999998','key'),company)
+            with self.assertRaises(SourceError):resolve_dart_company('999997','key')
 
     def test_secret_error_sanitized(self):
         with patch('analysis_sources.httpx.get',side_effect=httpx.ConnectError('https://example.com?apiKey=SECRET')):
