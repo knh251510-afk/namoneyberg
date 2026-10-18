@@ -65,14 +65,16 @@ def load():
 
 @st.fragment
 def render():
-    st.subheader('주요 경제지표 발표 일정')
-    st.caption('한국 · 미국 · 일본 · 유로존 · 영국 | 한국시간')
+    st.caption('한국시간 기준 · KST')
     mode=st.segmented_control('표시 기간',['앞으로 30일','최근 1개월','최근 3개월','최근 1년','직접 선택'],default='앞으로 30일') or '앞으로 30일'
     with st.spinner('공식 발표 일정 조회 중…'):frame,status=load()
-    countries=st.multiselect('경제권', ['한국','미국','일본','유로존','영국'],default=['한국','미국','일본','유로존','영국'])
+    filters=st.columns([3,2,1.6],vertical_alignment='bottom')
+    with filters[0]:
+        countries=st.multiselect('경제권', ['한국','미국','일본','유로존','영국'],default=['한국','미국','일본','유로존','영국'])
     frame=frame[frame.country.isin(countries)]
     from calendar_explain import explain,importance
-    levels=st.segmented_control('중요도',[1,2,3],format_func=lambda n:'★'*n,selection_mode='multi',default=[1,2,3])
+    with filters[1]:
+        levels=st.segmented_control('중요도',[1,2,3],format_func=lambda n:'★'*n,selection_mode='multi',default=[1,2,3])
     frame=frame[frame.title.map(lambda title:explain(title)[0] in (levels or []))]
     current=data.now();earliest=(pd.Timestamp(current.date())-pd.DateOffset(years=1)).date()
     if mode=='직접 선택':
@@ -95,11 +97,11 @@ def render():
     lookup_key='calendar-values-v2-'+hashlib.sha256(signature.encode()).hexdigest()[:16]
     def fetch_values():
         return {'lookup':calendar_values.collect(frame[frame.country=='미국'],current),'international':calendar_international_values.collect(frame,current),'decisions':calendar_decisions.collect(frame,current)}
-    if st.button('발표 결과 확인',key='calendar_check_results',icon=':material/refresh:'):
-        quote_cache.invalidate(lookup_key)
+    with filters[2]:
+        if st.button('결과 새로고침',key='calendar_check_results',icon=':material/refresh:'):
+            quote_cache.invalidate(lookup_key)
     payload=quote_cache.request(lookup_key,fetch_values,lambda:{'lookup':calendar_values.saved_lookup(),'international':None,'decisions':calendar_decisions.saved_results()},ttl=3600)
     lookup=payload['lookup'];international=payload['international']
-    st.caption('중요도 ★★★ 높음 · ★★☆ 보통 · ★☆☆ 참고 | 지표 이름에 커서를 올리면 설명을 볼 수 있습니다.')
     for day,group in frame.groupby(frame.when.dt.strftime('%Y.%m.%d'),sort=False):
         weekday=group.iloc[0]['when'].weekday()
         st.markdown('<div class="calendar-day">'+day+' <span>'+['월','화','수','목','금','토','일'][weekday]+'요일</span></div>',unsafe_allow_html=True)
@@ -130,13 +132,13 @@ def render():
                     excerpt=decision['title']
                     detail=decision['summary']
                     if detail and detail!=excerpt and 'is responsible for making decisions about Bank Rate' not in detail:excerpt+=' · '+detail
-                    cells='<td colspan="3" class="cal-decision"><strong>핵심 결정 · 안건</strong><p>'+escape(excerpt)+'</p><a href="'+escape(decision['url'],quote=True)+'" target="_blank" rel="noopener noreferrer">공식 발표 ↗</a></td>'
+                    cells='<td colspan="3" class="cal-decision"><p>'+escape(excerpt)+'</p><a href="'+escape(decision['url'],quote=True)+'" target="_blank" rel="noopener noreferrer">공식 발표 ↗</a></td>'
                 else:
                     text='공식 결과를 확인 중입니다.' if past else '회의 결과 발표 예정'
                     cells='<td colspan="3" class="cal-decision">'+text+'</td>'
             else:cells=f'<td class="cal-number">{actual}</td><td class="cal-number">{previous}</td><td class="cal-number {cls}">{change}</td>'
             target=policy_rows if calendar_decisions.is_policy(row['title']) else numeric_rows
-            target.append(f'<tr><td class="cal-time">{clock}</td><td class="cal-country">{escape(row["country"])}<small>{currency}</small></td><td class="cal-impact" aria-label="중요도 {score}/3" title="사이트 편집 기준 중요도 {score}/3">{importance(score)}</td><td class="cal-title">{tip}<small>{escape(period)} · {badge} · <a href="{escape(row["url"],quote=True)}" target="_blank" rel="noopener noreferrer">출처 ↗</a></small></td>{cells}</tr>')
+            target.append(f'<tr><td class="cal-time">{clock}</td><td class="cal-country">{escape(row["country"])}<small>{currency}</small></td><td class="cal-impact" aria-label="중요도 {score}/3" title="사이트 편집 기준 중요도 {score}/3">{importance(score)}</td><td class="cal-title">{tip}<small>{escape(period)+' · ' if period else ''}<a href="{escape(row["url"],quote=True)}" target="_blank" rel="noopener noreferrer">출처 ↗</a></small></td>{cells}</tr>')
         for rows,heading in [(numeric_rows,'<th>실적</th><th>이전</th><th>증감</th>'),(policy_rows,'<th colspan="3">핵심 결정 · 안건</th>')]:
             if rows:st.markdown('<div class="calendar-table-wrap"><table class="calendar-table"><thead><tr><th>시간</th><th>경제권</th><th>중요도</th><th>경제지표</th>'+heading+'</tr></thead><tbody>'+''.join(rows)+'</tbody></table></div>',unsafe_allow_html=True)
     with st.expander('실적 출처 · 계산 기준',expanded=False):

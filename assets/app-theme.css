@@ -466,3 +466,16 @@ html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{bac
 
 /* Typography roles: display titles versus reading and data. */
 .stApp h1,.stApp h2,.stApp h3,.stApp h4,.stApp .home-card-title,.st-key-brand_home a p{font-family:"NanumSquare","Nanum Gothic","Malgun Gothic",sans-serif!important}
+
+/* Compact editorial calendar: restrained rules and readable data. */
+.calendar-day{background:transparent!important;border-radius:0!important;border-top:2px solid var(--nb-border);padding:14px 0 8px!important;margin-top:24px!important;font-size:15px!important}
+.calendar-table-wrap{border-radius:0!important;border:0!important;border-bottom:1px solid var(--nb-border);margin:0 0 18px!important}
+.calendar-table{font-size:13px!important}
+.calendar-table th{font-size:12px!important;font-weight:700!important}
+.calendar-table td{padding:12px!important;line-height:1.6!important}
+.calendar-table small{font-size:12px!important;line-height:1.5!important}
+.calendar-table .cal-event-name{font-weight:700}
+.calendar-table .cal-impact{font-size:12px;letter-spacing:1px;color:var(--nb-muted)!important}
+.calendar-table tbody tr:nth-child(even) td{background:var(--nb-bg)!important}
+.stApp [class*="st-key-home_menu_"] [data-testid="stCaptionContainer"] p{color:#e1e6e3!important}
+.stApp [class*="st-key-home_menu_"] [data-testid="stPageLink"] a p{font-weight:700!important}
