@@ -13,3 +13,6 @@ keyring
 openpyxl
 
 -r requirements-rag.txt
+
+# Avoid the PyArrow 26 crash/replacement cycle on Streamlit Cloud.
+pyarrow==24.0.0; python_version >= "3.11"
