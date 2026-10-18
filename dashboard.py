@@ -338,16 +338,7 @@ def render_page(page,embedded=False):
             briefing_art.render(saved)
             from html import escape
             st.markdown('<div class="brief-lead"><h3>'+escape(r['headline'])+'</h3><p>'+escape(r['summary'])+'</p></div>',unsafe_allow_html=True)
-            category=briefing_ui.category_picker()
-            themes=[t for t in r.get('themes',[]) if t.get('category')==category]
-            if not themes:st.info('이 범주의 근거가 충분한 뉴스가 없습니다.')
-            asset={'매크로':'macro','글로벌':'global','산업':'industry'}[category]
-            blocks=[]
-            for theme in themes:
-                 sources=''.join('<a href="'+escape(item['url'],quote=True)+'" target="_blank" rel="noopener noreferrer">'+escape(item['source']+' · '+item['title'])+' ↗</a>' for item in theme['sources'])
-                 comparison_html=('<dt>보도 비교</dt><dd>'+escape(theme['comparison'])+'</dd>') if theme.get('comparison') else ''
-                 blocks.append('<article class="brief-topic"><h4>'+escape(theme['title'])+'</h4><dl><dt>종합 흐름</dt><dd>'+escape(theme['facts'])+'</dd><dt>시장 의미</dt><dd>'+escape(theme['interpretation'])+'</dd><dt>확인할 변수</dt><dd>'+escape(theme['watch'])+'</dd>'+comparison_html+'</dl><details class="brief-sources"><summary>출처 '+str(len(theme['sources']))+'건</summary>'+sources+'</details></article>')
-            st.markdown('<div class="brief-topics">'+''.join(blocks)+'</div>',unsafe_allow_html=True)
+            briefing_ui.topics(r)
             briefing_ui.downloads(saved,start)
         else:
             st.info('아직 게시된 브리핑이 없습니다.')

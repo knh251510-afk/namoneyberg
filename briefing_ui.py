@@ -33,7 +33,7 @@ def category_picker():
     for col,(label,asset) in zip(cols,CATEGORIES.items()):
         with col:
             with st.container(key='brief_category_'+asset):
-                st.button(label,key='choose_brief_'+asset,on_click=choose,args=(label,),use_container_width=True)
+                st.button(label,key='choose_brief_'+asset,on_click=choose,args=(label,),width='stretch')
     return selected
 
 def downloads(saved,start):
@@ -41,5 +41,19 @@ def downloads(saved,start):
     from macro_ai import report_markdown
     with st.container(key='brief_downloads'):
         a,b=st.columns(2,gap='small')
-        a.download_button('브리핑 다운로드',report_markdown(saved),f'weekly_{start:%Y%m%d}.md','text/markdown')
-        b.download_button('마켓 오버뷰 다운로드',json.dumps(saved,ensure_ascii=False,indent=2),'weekly_market_overview.json','application/json')
+        a.download_button('브리핑 문서 (.md)',report_markdown(saved),f'weekly_{start:%Y%m%d}.md','text/markdown')
+        b.download_button('데이터 (.json)',json.dumps(__import__('briefing_store').public_report(saved),ensure_ascii=False,indent=2),'weekly_market_overview.json','application/json')
+
+@st.fragment
+def topics(report):
+    category=category_picker()
+    themes=[t for t in report.get('themes',[]) if t.get('category')==category]
+    if not themes:
+        st.info('이 범주의 근거가 충분한 뉴스가 없습니다.')
+        return
+    blocks=[]
+    for theme in themes:
+        sources=''.join('<a href="'+escape(item['url'],quote=True)+'" target="_blank" rel="noopener noreferrer">'+escape(item['source']+' · '+item['title'])+' ↗</a>' for item in theme.get('sources',[]))
+        comparison=('<dt>보도 비교</dt><dd>'+escape(theme['comparison'])+'</dd>') if theme.get('comparison') else ''
+        blocks.append('<article class="brief-topic"><h4>'+escape(theme.get('title',''))+'</h4><dl><dt>종합 흐름</dt><dd>'+escape(theme.get('facts',''))+'</dd><dt>시장 의미</dt><dd>'+escape(theme.get('interpretation',''))+'</dd><dt>확인할 변수</dt><dd>'+escape(theme.get('watch',''))+'</dd>'+comparison+'</dl><details class="brief-sources"><summary>출처 '+str(len(theme.get('sources',[])))+'건</summary>'+sources+'</details></article>')
+    st.markdown('<div class="brief-topics">'+''.join(blocks)+'</div>',unsafe_allow_html=True)

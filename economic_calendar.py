@@ -63,7 +63,7 @@ def load():
     statuses.append('BEA: 공식 일정 연결' if more else 'BEA: 연결된 일정이 준비되면 추가합니다.')
     return pd.DataFrame(events).drop_duplicates(subset=['when','title']).sort_values('when'),statuses
 
-@st.fragment(run_every=15)
+@st.fragment
 def render():
     st.subheader('주요 경제지표 발표 일정')
     st.caption('한국 · 미국 · 일본 · 유로존 · 영국 | 한국시간')
@@ -95,6 +95,8 @@ def render():
     lookup_key='calendar-values-v2-'+hashlib.sha256(signature.encode()).hexdigest()[:16]
     def fetch_values():
         return {'lookup':calendar_values.collect(frame[frame.country=='미국'],current),'international':calendar_international_values.collect(frame,current),'decisions':calendar_decisions.collect(frame,current)}
+    if st.button('발표 결과 확인',key='calendar_check_results',icon=':material/refresh:'):
+        quote_cache.invalidate(lookup_key)
     payload=quote_cache.request(lookup_key,fetch_values,lambda:{'lookup':calendar_values.saved_lookup(),'international':None,'decisions':calendar_decisions.saved_results()},ttl=3600)
     lookup=payload['lookup'];international=payload['international']
     st.caption('중요도 ★★★ 높음 · ★★☆ 보통 · ★☆☆ 참고 | 지표 이름에 커서를 올리면 설명을 볼 수 있습니다.')
