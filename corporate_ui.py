@@ -21,9 +21,8 @@ def render():
         if searched:
             st.session_state.pop('corporate_matches',None)
             if not query.strip():st.info('기업명 또는 종목코드를 입력해주세요.');return
-            with st.spinner('DART 기업 목록에서 검색 중…'):
-                companies=src.dart_companies(key)
-            matched=[c for c in companies if query.strip().casefold() in c['name'].casefold() or query.strip() in c['stock_code']][:100]
+            with st.spinner('기업 검색 중…'):
+                matched=src.dart_search(query.strip(),key)
             st.session_state['corporate_matches']=matched
         matched=st.session_state.get('corporate_matches',[])
         if not matched:
