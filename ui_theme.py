@@ -8,7 +8,7 @@ def toggle():
     st.session_state['color_mode']='dark' if mode()=='light' else 'light'
 def control():
     dark=mode()=='dark'
-    st.button('라이트' if dark else '다크',icon=':material/light_mode:' if dark else ':material/dark_mode:',help='화면과 이미지 시간대 전환',on_click=toggle,key='theme_toggle')
+    st.button('라이트 모드로 전환' if dark else '다크 모드로 전환',icon=':material/light_mode:' if dark else ':material/dark_mode:',help='라이트 모드로 전환' if dark else '다크 모드로 전환',on_click=toggle,key='theme_toggle')
 def apply():
     import seed_theme
     seed_theme.apply(mode())
