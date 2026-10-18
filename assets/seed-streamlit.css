@@ -86,3 +86,11 @@
 .st-key-brief_category_macro button,.st-key-brief_category_macro button:hover{background-image:url('/app/static/brief-macro.png')!important}
 .st-key-brief_category_global button,.st-key-brief_category_global button:hover{background-image:url('/app/static/brief-global.png')!important}
 .st-key-brief_category_industry button,.st-key-brief_category_industry button:hover{background-image:url('/app/static/brief-industry.png')!important}
+/* Align the wordmark with the navigation text baseline. */
+.st-key-site_header .brand-head{transform:translateY(-6px)}
+.st-key-footer_navigation{position:fixed!important;bottom:0;left:0;right:0;z-index:999;background:#fffffff5;border-top:1px solid var(--nb-border);padding:12px max(24px,calc((100vw - 1000px)/2))!important}
+.st-key-footer_navigation p{font-size:12px!important;margin:0!important}
+.st-key-footer_navigation a{white-space:nowrap;color:var(--nb-muted)!important}
+.st-key-footer_navigation [data-testid="stHorizontalBlock"]{gap:20px!important;flex-wrap:nowrap!important}
+.st-key-footer_navigation [data-testid="stColumn"]{min-width:70px!important}
+@media(max-width:700px){.st-key-site_header .brand-head{transform:translateY(-3px)}.st-key-footer_navigation{padding:10px 16px!important}}

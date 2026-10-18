@@ -1,4 +1,4 @@
-"""GLOBAL MACRO ATLAS — 로컬 거시경제 대시보드."""
+"""NAMONEYBERG — 경제 데이터·뉴스 분석 대시보드."""
 import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
@@ -25,11 +25,10 @@ with st.container(key='site_header'):
         st.markdown('<div class="brand-head"><a class="brand-name" href="/" target="_self" aria-label="NAMONEYBERG 초기 화면" style="text-decoration:none"><b>NAMONEYBERG</b></a></div>',unsafe_allow_html=True)
     with menu_col:
         nav_slot=st.container(key='main_navigation')
-st.markdown('<footer class="terminal-footer"><b>NAMONEYBERG</b><nav aria-label="관리 메뉴"><a href="/admin">관리자</a><a href="/sources">데이터 안내</a></nav></footer>',unsafe_allow_html=True)
 market_ui.ticker()
 
 @st.cache_data(ttl=1800,show_spinner=False)
-def get_series(kind,key=''):
+def get_series(kind,key='',revision='20261018-series-v3'):
     if kind=='wb':return data.world_bank(key)
     if kind=='policy':return data.policy_rates()
     if kind=='fred':return data.fred(key)
@@ -38,13 +37,13 @@ def get_series(kind,key=''):
     if kind=='jp_confidence':return data.japan_confidence()
 
 
-if st.session_state.get('source_revision') != '20261016-cpi-v2':
-    get_series.clear()
-    st.session_state['source_revision']='20261016-cpi-v2'
 
 def fetch_safe(kind,key=''):
     try:return (*get_series(kind,key),None)
-    except Exception:return pd.DataFrame(),{},'조회 실패 또는 데이터 없음'
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning('Series fetch failed: kind=%s error=%s',kind,type(exc).__name__)
+        return pd.DataFrame(),{},'조회 실패 또는 데이터 없음'
 
 
 def label(code):return data.COUNTRIES[code][0]
@@ -298,7 +297,7 @@ def render_page(page,embedded=False):
                 else:
                     with st.spinner('뉴스 근거를 종합하고 해석을 작성하고 있습니다…'):
                         from macro_ai import overview
-                        context={'markets':st.session_state.get('weekly_markets',[]),'releases':st.session_state.get('release_snapshot',[]),'annual_data':st.session_state.get('annual_snapshot','未取得')}
+                        context={'markets':st.session_state.get('weekly_markets',[]),'releases':st.session_state.get('release_snapshot',[]),'annual_data':st.session_state.get('annual_snapshot','미조회')}
                         report=overview(key,model,articles,context)
                         report['data_snapshot']=context
                         report['generated_at']=data.now().isoformat()
@@ -326,7 +325,7 @@ def render_page(page,embedded=False):
             from html import escape
             st.markdown('<div class="brief-lead"><h3>'+escape(r['headline'])+'</h3><p>'+escape(r['summary'])+'</p></div>',unsafe_allow_html=True)
             category=briefing_ui.category_picker()
-            themes=[t for t in r['themes'] if t.get('category')==category]
+            themes=[t for t in r.get('themes',[]) if t.get('category')==category]
             if not themes:st.info('이 범주의 근거가 충분한 뉴스가 없습니다.')
             asset={'매크로':'macro','글로벌':'global','산업':'industry'}[category]
             blocks=[]
