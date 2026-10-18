@@ -27,9 +27,9 @@ class SourceTests(unittest.TestCase):
     def test_company_resolution_uses_official_directory(self):
         from analysis_sources import resolve_dart_company
         company={'name':'삼성전자','stock_code':'005930','corp_code':'00126380'}
-        with patch('analysis_sources.dart_companies',return_value=[company]), patch('analysis_sources.httpx.post') as html:
+        with patch('analysis_sources.dart_companies',return_value=[company]), patch('analysis_sources.httpx.post',side_effect=httpx.ConnectError('unavailable')) as html:
             self.assertEqual(resolve_dart_company('005930','key'),company)
-            html.assert_not_called()
+            html.assert_called_once()
             with self.assertRaises(SourceError):resolve_dart_company('000000','key')
 
     def test_secret_error_sanitized(self):
