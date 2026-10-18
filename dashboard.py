@@ -15,6 +15,7 @@ import market_ui
 import chart_ui
 import admin_auth
 import briefing_controls
+import briefing_ui
 
 st.set_page_config(page_title='NAMONEYBERG',page_icon='🌐',layout='wide')
 ui_theme.apply()
@@ -24,6 +25,7 @@ with st.container(key='site_header'):
         st.markdown('<div class="brand-head"><div class="brand-name"><b>NAMONEYBERG</b></div></div>',unsafe_allow_html=True)
     with menu_col:
         nav_slot=st.container(key='main_navigation')
+st.markdown('<footer class="terminal-footer"><b>NAMONEYBERG</b><nav aria-label="관리 메뉴"><a href="/admin">관리자</a><a href="/sources">데이터 안내</a></nav></footer>',unsafe_allow_html=True)
 market_ui.ticker()
 
 @st.cache_data(ttl=1800,show_spinner=False)
@@ -313,27 +315,22 @@ def render_page(page,embedded=False):
                     if candidate['period']['start']==start.isoformat():
                         saved=candidate;st.session_state['weekly_report']=saved;break
                 except (ValueError,KeyError,OSError):continue
-        st.caption(briefing_controls.updated_label(saved))
+        briefing_ui.metadata(briefing_controls.updated_label(saved))
         if saved and saved['period']['start']==start.isoformat():
+            briefing_ui.metadata('브리핑 기준 '+saved['period']['start'][:10]+' ~ '+saved['period'].get('end','')[:10])
             r=saved['report']
             from html import escape
             st.markdown('<div class="brief-lead"><h3>'+escape(r['headline'])+'</h3><p>'+escape(r['summary'])+'</p></div>',unsafe_allow_html=True)
-            categories=st.tabs(['매크로','글로벌','산업'])
-            for tab,category in zip(categories,['매크로','글로벌','산업']):
-              with tab:
-               themes=[t for t in r['themes'] if t.get('category')==category]
-               if not themes:st.info('이 범주의 근거가 충분한 뉴스가 없습니다.')
-               asset={'매크로':'macro','글로벌':'global','산업':'industry'}[category]
-               blocks=[]
-               for theme in themes:
-                    sources=''.join('<a href="'+escape(item['url'],quote=True)+'" target="_blank" rel="noopener noreferrer">'+escape(item['source']+' · '+item['title'])+' ↗</a>' for item in theme['sources'])
-                    blocks.append('<article class="brief-topic"><h4>'+escape(theme['title'])+'</h4><dl><dt>종합 흐름</dt><dd>'+escape(theme['facts'])+'</dd><dt>시장 의미</dt><dd>'+escape(theme['interpretation'])+'</dd><dt>확인할 변수</dt><dd>'+escape(theme['watch'])+'</dd></dl><details class="brief-sources"><summary>출처 '+str(len(theme['sources']))+'건</summary>'+sources+'</details></article>')
-               st.markdown('<div class="brief-topics">'+''.join(blocks)+'</div>',unsafe_allow_html=True)
-            with st.expander('자료 범위 · 해석 유의사항',expanded=False):
-                st.caption(r['limitations'])
-            from macro_ai import report_markdown
-            st.download_button('브리핑 다운로드',report_markdown(saved),f'weekly_{start:%Y%m%d}.md','text/markdown')
-            st.download_button('마켓 오버뷰 다운로드',json.dumps(saved,ensure_ascii=False,indent=2),'weekly_market_overview.json','application/json')
+            category=briefing_ui.category_picker()
+            themes=[t for t in r['themes'] if t.get('category')==category]
+            if not themes:st.info('이 범주의 근거가 충분한 뉴스가 없습니다.')
+            asset={'매크로':'macro','글로벌':'global','산업':'industry'}[category]
+            blocks=[]
+            for theme in themes:
+                 sources=''.join('<a href="'+escape(item['url'],quote=True)+'" target="_blank" rel="noopener noreferrer">'+escape(item['source']+' · '+item['title'])+' ↗</a>' for item in theme['sources'])
+                 blocks.append('<article class="brief-topic"><h4>'+escape(theme['title'])+'</h4><dl><dt>종합 흐름</dt><dd>'+escape(theme['facts'])+'</dd><dt>시장 의미</dt><dd>'+escape(theme['interpretation'])+'</dd><dt>확인할 변수</dt><dd>'+escape(theme['watch'])+'</dd></dl><details class="brief-sources"><summary>출처 '+str(len(theme['sources']))+'건</summary>'+sources+'</details></article>')
+            st.markdown('<div class="brief-topics">'+''.join(blocks)+'</div>',unsafe_allow_html=True)
+            briefing_ui.downloads(saved,start)
     elif page=='뉴스':
         from html import escape
         st.subheader('뉴스')
@@ -424,7 +421,7 @@ public_specs=[spec for spec in PAGE_SPECS if spec[2] not in ('settings','sources
 active_spec=PAGE_SPECS[active_index]
 if active_spec in public_specs:
     menu_index=public_specs.index(active_spec)+1
-    st.markdown(f'<style>.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a{{background:transparent!important;color:var(--nb-accent)!important;border-bottom:3px solid var(--nb-accent)!important}}.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a p{{color:var(--nb-accent)!important;font-weight:600!important}}</style>',unsafe_allow_html=True)
+    st.markdown(f'<style>.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a{{background:var(--seed-color-bg-brand-weak)!important;color:var(--nb-accent)!important;border-bottom:0!important}}.st-key-main_navigation [data-testid="stElementContainer"]:nth-child({menu_index}) a p{{color:var(--nb-accent)!important;font-weight:600!important}}</style>',unsafe_allow_html=True)
 
 with nav_slot:
     for spec,nav_page in zip(PAGE_SPECS,pages):
@@ -437,4 +434,3 @@ with st.container(key="page_body"):
     active.run()
 if st.session_state.pop('open_comparison',False):
     st.switch_page(next(p for p in pages if p.url_path=='compare'))
-st.markdown('<footer class="terminal-footer"><b>NAMONEYBERG</b><nav aria-label="관리 메뉴"><a href="/admin">관리자</a><a href="/sources">데이터 안내</a></nav></footer>',unsafe_allow_html=True)
