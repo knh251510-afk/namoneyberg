@@ -7,3 +7,5 @@
 Icon edit prompt: preserve the supplied heavy geometric letterforms; retain only black 나 and blue 버, side by side on white; remove 머, 니, 그 and period; no decoration.
 
 Streamlit Community Cloud generates link-preview images from a daily screenshot. The separate social image is provided for platforms that permit a custom upload; it is not represented as a custom Cloud Open Graph setting.
+
+Dark header: `static/brand/namoneyberg-wordmark-dark.webp`. Built-in image edit prompt: preserve exact wordmark geometry, change black letters to off-white and blue letters to soft blue, remove white background to transparent alpha, no glow or shadow. Original uploaded wordmark remains unchanged.
