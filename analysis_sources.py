@@ -1,6 +1,7 @@
 """KOSIS and OpenDART adapters. Never expose authenticated URLs in exceptions."""
 import io,re,zipfile,math
 import xml.etree.ElementTree as ET
+from html import unescape
 import httpx
 import pandas as pd
 import streamlit as st
@@ -9,7 +10,8 @@ class SourceError(ValueError):pass
 
 def request_json(base,params):
     try:
-        r=httpx.get(base,params=params,timeout=40);r.raise_for_status();payload=r.json()
+        r=httpx.get(base,params=params,timeout=httpx.Timeout(25,connect=5));r.raise_for_status();payload=r.json()
+    except httpx.TimeoutException:raise SourceError('데이터 공급원의 응답이 지연되고 있습니다. 잠시 후 다시 조회해주세요.') from None
     except (httpx.HTTPError,ValueError):raise SourceError('데이터 공급원 연결에 실패했습니다. 인증·서비스 상태를 확인해주세요.') from None
     if isinstance(payload,dict):
         status=payload.get('status')
@@ -84,6 +86,33 @@ def parse_dart_companies(content):
     except (zipfile.BadZipFile,ET.ParseError,StopIteration):
         raise SourceError('DART 기업 목록 파일을 해석하지 못했습니다.') from None
     return [{'name':e.findtext('corp_name') or '', 'corp_code':e.findtext('corp_code'),'stock_code':e.findtext('stock_code')} for e in root.findall('list') if re.fullmatch(r'\d{6}',e.findtext('stock_code') or '')]
+
+def parse_dart_search(content):
+    if 'corpTable' not in content:
+        raise SourceError('DART 기업 검색 응답 형식을 확인하지 못했습니다.')
+    matches=[]
+    for row in re.findall(r'<tr\b[^>]*>(.*?)</tr>',content,re.S|re.I):
+        company=re.search(r"select\('([0-9]{8})'\).*?>(.*?)</a>",row,re.S)
+        stock=re.search(r'<td[^>]*>\s*([0-9]{6})\s*</td>',row,re.S|re.I)
+        if company and stock:
+            name=unescape(re.sub(r'<[^>]+>','',company.group(2))).strip()
+            matches.append({'name':name,'corp_code':company.group(1),'stock_code':stock.group(1)})
+    return matches
+
+@st.cache_data(ttl=86400,show_spinner=False,max_entries=512)
+def dart_search(query,_key):
+    query=query.strip()
+    if len(query)<2:raise SourceError('기업명은 두 글자 이상 입력해주세요.')
+    try:
+        response=httpx.post('https://dart.fss.or.kr/dsae001/search.ax',
+            data={'textCrpNm':query,'currentPage':'1','maxResults':'100'},
+            timeout=httpx.Timeout(12,connect=5))
+        response.raise_for_status()
+        return parse_dart_search(response.text)
+    except (httpx.HTTPError,SourceError):
+        # Official API directory is a fallback if the public search changes.
+        companies=dart_companies(_key)
+        return [c for c in companies if query.casefold() in c['name'].casefold() or query in c['stock_code']][:100]
 
 @st.cache_data(ttl=86400,show_spinner=False)
 def dart_companies(_key):
