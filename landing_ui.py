@@ -52,6 +52,17 @@ def render(pages):
 [class*="st-key-home_menu_"] [data-testid="stElementContainer"]{margin:0!important}
 .stApp [class*="st-key-home_menu_"] [class*="st-key-home_tool_"]{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;gap:0!important}\n.stApp [class*="st-key-home_menu_"] .tool-preview{position:absolute!important;right:0!important;top:5px!important;width:40px;height:22px;color:#dceee3;pointer-events:none}\n.stApp [class*="st-key-home_menu_"] [data-testid="stPageLink"] a{padding-right:45px!important}\n.home-note{font-size:12px;color:var(--nb-muted);padding:20px 0;border-top:1px solid var(--nb-border);margin-top:24px}
 @media(hover:none){[class*="st-key-home_card_"] img{filter:brightness(.28)}[class*="st-key-home_menu_"]{opacity:1;visibility:visible;transform:none;padding-top:64px!important;background:transparent}.stApp .home-card-title{top:20px;bottom:auto;font-size:20px!important}[class*="st-key-home_card_"]:focus-within .home-card-title{opacity:1}}
+@keyframes ink-trace{from{stroke-dashoffset:110}to{stroke-dashoffset:0}}
+@keyframes paper-read{from{transform:translateY(2px);opacity:.3}to{transform:translateY(0);opacity:1}}
+@keyframes bar-grow{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+@keyframes node-signal{0%,100%{opacity:.4}50%{opacity:1}}
+@media(prefers-reduced-motion:no-preference){
+[class*="st-key-home_tool_"]:focus-within .trace{stroke-dasharray:110;animation:ink-trace 650ms ease-out both}
+[class*="st-key-home_tool_"]:focus-within .bar{transform-origin:center bottom;transform-box:fill-box;animation:bar-grow 450ms ease-out both}
+[class*="st-key-home_tool_"]:focus-within .paper{animation:paper-read 400ms ease-out both}
+[class*="st-key-home_tool_"]:focus-within .signal{animation:node-signal 900ms ease-in-out 2}
+}
+@media(prefers-reduced-motion:reduce){.tool-preview *{animation:none!important}} 
 @media(prefers-reduced-motion:reduce){[class*="st-key-home_card_"],[class*="st-key-home_card_"] img,[class*="st-key-home_menu_"]{transition:none!important;transform:none!important}}
 </style><section class="home-intro"><h1>경제 데이터와 시장 해설</h1><p>시장의 흐름부터 데이터 분석까지, 필요한 도구를 선택하세요.</p></section>''',unsafe_allow_html=True)
     for offset in range(0,len(GROUPS),3):
