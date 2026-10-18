@@ -71,15 +71,6 @@ def render(pages):
     from pathlib import Path
     by_path={page.url_path:page for page in pages}
     by_path['home']=pages[0]
-    import briefing_store
-    latest=briefing_store.latest()
-    if latest:
-        with st.container(key='home_latest_brief',border=True):
-            st.caption('최근 게시 브리핑')
-            st.markdown('### '+latest['report']['headline'])
-            st.write(latest['report']['summary'][:180])
-            st.caption('최신화 '+latest['generated_at'][:16].replace('T',' '))
-            if 'overview' in by_path:st.page_link(by_path['overview'],label='브리핑 읽기 →')
     for offset in range(0,len(GROUPS),3):
         for column,(heading,items) in zip(st.columns(min(3,len(GROUPS)-offset),gap='large'),GROUPS[offset:offset+3]):
             with column:
