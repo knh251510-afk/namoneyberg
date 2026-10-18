@@ -14,8 +14,7 @@ SYMBOLS={'코스피':'^KS11','코스닥':'^KQ11','나스닥':'^IXIC','S&P 500':'
 
 def direction(value):return 'rise' if value>0 else ('fall' if value<0 else 'flat')
 
-@st.cache_data(ttl=300,show_spinner=False)
-def quotes():
+def _fetch_quotes():
     import yfinance as yf
     def one(item):
         name,symbol=item;path=data.CACHE/('quote_'+symbol.replace('=','').replace('^','')+'.json')
@@ -32,6 +31,23 @@ def quotes():
             return {'name':name,'symbol':symbol,'value':None,'stale':True}
     with ThreadPoolExecutor(max_workers=5) as pool:return list(pool.map(one,SYMBOLS.items()))
 
+def _saved_quotes():
+    rows=[]
+    for name,symbol in SYMBOLS.items():
+        path=data.CACHE/('quote_'+symbol.replace('=','').replace('^','')+'.json')
+        try:rows.append({**json.loads(path.read_text()),'stale':True})
+        except (OSError,ValueError):rows.append({'name':name,'symbol':symbol,'value':None,'stale':True})
+    return rows
+
+def quotes():
+    import quote_cache
+    return quote_cache.request('market-quotes',_fetch_quotes,_saved_quotes,ttl=300)
+
+def _clear_quotes():
+    import quote_cache
+    quote_cache.invalidate('market-quotes')
+quotes.clear=_clear_quotes
+
 def tile(row):
     name=escape(row['name']);value=row['value']
     if value is None:return f'<div class="quote-item"><span>{name}</span><b>—</b><small>조회 불가</small></div>'
@@ -39,7 +55,7 @@ def tile(row):
     change=row['change'];cls=direction(change);arrow='▲' if change>0 else ('▼' if change<0 else '−')
     return f'<div class="quote-item"><span>{name}</span><b>{value:,.{decimals}f}</b><strong class="{cls}">{arrow} {abs(change):,.{decimals}f} ({row["pct"]:+.2f}%)</strong><small>{escape(row["date"][:10])}'+(' · 저장값' if row['stale'] else '')+'</small></div>'
 
-@st.fragment(run_every=300)
+@st.fragment(run_every=30)
 def ticker():
     rows=quotes();items=''.join(tile(r) for r in rows)
     st.markdown('<div class="quote-ticker" tabindex="0" aria-label="시장 시세. 마우스를 올리거나 키보드로 선택하면 이동이 멈춥니다."><div class="quote-track"><div class="quote-group">'+items+'</div><div class="quote-group" aria-hidden="true">'+items+'</div></div></div>',unsafe_allow_html=True)
@@ -61,23 +77,48 @@ def render():
         st.markdown('### '+title)
         st.markdown('<div class="quote-grid">'+''.join(tile(r) for r in rows if r['name'] in names)+'</div>',unsafe_allow_html=True)
     st.markdown('### 추이 살펴보기')
-    name=st.segmented_control('시장',list(SYMBOLS),default='코스피',label_visibility='collapsed') or '코스피'
-    period='max'
-    chart_slot=st.container()
-    try:
-        frame=history(SYMBOLS[name],period)
-        if not frame.empty:frame=frame[frame.일자.dt.year>=2000]
-        if frame.empty:st.info('차트를 불러오지 못했습니다.')
-        else:
-            color='#d23847' if frame.종가.iloc[-1]>=frame.종가.iloc[0] else '#2766c5'
-            chart_slot.altair_chart(chart_ui.timeseries(frame,'일자','종가',name,color=color,height=340),use_container_width=True,theme=None)
-            high=frame.loc[frame.종가.idxmax()];low=frame.loc[frame.종가.idxmin()]
-            left,right=st.columns(2)
-            left.metric('기간 내 최고',f'{high.종가:,.4f}' if name in ('위안/달러','유로/달러') else f'{high.종가:,.2f}')
-            left.caption(f'{high.일자:%Y-%m-%d}')
-            right.metric('기간 내 최저',f'{low.종가:,.4f}' if name in ('위안/달러','유로/달러') else f'{low.종가:,.2f}')
-            right.caption(f'{low.일자:%Y-%m-%d}')
-    except Exception:st.info('시계열 조회에 실패했습니다. 잠시 후 새로고침해주세요.')
+    names=st.segmented_control('비교할 시장',list(SYMBOLS),selection_mode='multi',default=['코스피'],key='quote_trend_markets')
+    st.caption('항목을 누르면 비교에 추가되고, 다시 누르면 제외됩니다.')
+    if names:
+        mode=st.radio('표시 기준',['시작값 100','원래 값'],horizontal=True,key='quote_trend_mode') if len(names)>1 else '원래 값'
+        frames={}
+        for name in names:
+            try:
+                f=history(SYMBOLS[name],'max').copy()
+                if not f.empty:
+                    f=f.dropna(subset=['일자','종가']).sort_values('일자')
+                    f=f[(f.일자>=pd.Timestamp(2000,1,1)) & (f.일자<=pd.Timestamp.now())]
+                if f.empty:st.warning(name+' 자료를 불러오지 못했습니다.')
+                else:frames[name]=f
+            except Exception:st.warning(name+' 시계열 조회에 실패했습니다.')
+        if frames:
+            start=max(f.일자.min() for f in frames.values());end=min(f.일자.max() for f in frames.values())
+            if start>end:st.info('선택 항목들의 공통 조회 기간이 없습니다.')
+            else:
+                parts=[];summaries=[]
+                for name,f in frames.items():
+                    f=f[(f.일자>=start)&(f.일자<=end)].copy()
+                    if f.empty:continue
+                    high=f.loc[f.종가.idxmax()];low=f.loc[f.종가.idxmin()]
+                    summaries.append({'시장':name,'최고값':high.종가,'최고일':high.일자.strftime('%Y-%m-%d'),'최저값':low.종가,'최저일':low.일자.strftime('%Y-%m-%d')})
+                    f['시장']=name;f['원래 값']=f.종가
+                    if mode=='시작값 100':
+                        if f.종가.iloc[0]<=0:
+                            st.warning(name+'의 시작값이 0 이하라 지수화에서 제외했습니다.');continue
+                        f.종가=f.종가/f.종가.iloc[0]*100
+                    parts.append(f)
+                if parts:
+                    if mode=='시작값 100':
+                        st.altair_chart(chart_ui.timeseries(pd.concat(parts),'일자','종가','시작값 100',group='시장',height=380,domain=(start,end)),use_container_width=True,theme=None)
+                        st.caption('공통 조회 구간의 각 시장 첫 유효값을 100으로 환산합니다. 휴장일은 보간하지 않아 시작 거래일이 다를 수 있습니다. 환율은 표시 통화쌍 기준이며 원화 환산 투자수익률이 아닙니다.')
+                    else:
+                        for f in parts:
+                            name=f['시장'].iloc[0]
+                            st.markdown('**'+name+'**')
+                            st.altair_chart(chart_ui.timeseries(f,'일자','종가',name,height=260,domain=(start,end)),use_container_width=True,theme=None)
+                    st.caption(f'공통 조회 구간 {start:%Y-%m-%d} ~ {end:%Y-%m-%d} · 아래 최고·최저는 원래 값 기준')
+                    st.dataframe(pd.DataFrame(summaries),hide_index=True,use_container_width=True)
+    else:st.info('비교할 시장을 하나 이상 선택해주세요.')
     with st.expander('시세 출처 · 기준 시각',expanded=False):
         st.caption('Yahoo Finance / yfinance. 장중에는 진행 중인 일봉 값이 포함될 수 있습니다. 휴장·시차 때문에 국가별 기준일이 다릅니다. 환율 상승은 표기된 통화쌍 가격의 상승을 뜻합니다.')
         for r in rows:

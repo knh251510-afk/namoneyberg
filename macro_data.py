@@ -119,21 +119,9 @@ def policy_rates(refresh=False):
         frame = pd.read_csv(archive.open(archive.namelist()[0]), low_memory=False)
     frame = frame[frame['FREQ']=='D']
     reverse = {v[1]:k for k,v in COUNTRIES.items()}
-    rows=[]
-    date_cols = [c for c in frame.columns if re.fullmatch(r'\d{4}-\d{2}-\d{2}',c)]
-    for _, r in frame.iterrows():
-        country=reverse.get(r['REF_AREA'])
-        if not country:
-            continue
-        for date in date_cols:
-            value = pd.to_numeric(r[date], errors='coerce')
-            if pd.notna(value) and date >= '2000-01-01':
-                rows.append({'country':country,'date':date,'value':float(value),
-                             'definition':str(r.get('COMPILATION',''))})
-    result=pd.DataFrame(rows)
-    if result.empty:
-        raise ValueError('BIS 정책금리 데이터 형식을 확인해주세요.')
-    result['date']=pd.to_datetime(result['date'])
+    from bis_frame import long_frame
+    result=long_frame(frame,reverse,definitions=True)
+    if result.empty:raise ValueError('BIS 정책금리 데이터 형식을 확인해주세요.')
     # 유로존 회원국은 ECB 공통 금리를 사용하되 출처가 유로존임을 표시합니다.
     euro=result[result.country=='EMU']
     for code in ('DEU','FRA','ITA','ESP','NLD'):
@@ -205,18 +193,8 @@ def cpi_monthly(refresh=False):
         f=pd.read_csv(archive.open(archive.namelist()[0]),low_memory=False)
     f=f[(f.FREQ=='M') & (f.UNIT_MEASURE.astype(str)=='771')]
     reverse={v[1]:k for k,v in COUNTRIES.items()}
-    cols=[c for c in f.columns if re.fullmatch(r'\d{4}-\d{2}',c)]
-    rows=[]
-    for _,r in f.iterrows():
-        code=reverse.get(r.REF_AREA)
-        if code:
-            for date in cols:
-                value=pd.to_numeric(r[date],errors='coerce')
-                if date>='2000-01' and pd.notna(value):
-                    rows.append({'country':code,'date':date+'-01','value':float(value)})
-    result=pd.DataFrame(rows,columns=['country','date','value'])
-    result['date']=pd.to_datetime(result.date)
-    result=result.sort_values('date')
+    from bis_frame import long_frame
+    result=long_frame(f,reverse,monthly=True)
     try:
         us,us_meta=fred('미국 CPI',refresh)
         if not us.empty:
