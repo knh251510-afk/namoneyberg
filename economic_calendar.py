@@ -45,7 +45,6 @@ def parse_bea(raw):
     if not events:raise ValueError('BEA 일정 형식 변경')
     return events
 
-@st.cache_data(ttl=21600,show_spinner=False)
 def load():
     from calendar_global import events as global_events
     events=global_events()+[event(*e,'BLS',BLS) for e in BLS_SNAPSHOT];statuses=['한국·일본·유로존·영국 중앙은행과 한국 물가·고용·산업 일정: 공식 2026 계획 확인본 (2026-10-18). 시간 미정은 임의 추정하지 않습니다.']
@@ -55,17 +54,20 @@ def load():
             dt=datetime.strptime(item['day']+' '+item['time'],'%B %d, %Y %I:%M %p')
             events.append(event(dt.strftime('%Y-%m-%d'),dt.strftime('%H:%M'),item['title'],'BLS',f'https://www.bls.gov/schedule/{dt.year}/home.htm'))
     statuses.append('BLS: 2026-10-16 공식 일정 확인본 · 자동 접근 차단으로 저장된 일정 사용 · 변경 여부는 원문 확인')
-    try:
+    import quote_cache
+    def bea():
         raw,meta=data.fetch(BEA,21600)
-        events+=parse_bea(raw)
-        statuses.append(f"BEA: 조회 {meta['fetched_at']}"+(' · 이전 저장 자료' if meta.get('stale') else ' · 자동 갱신'))
-    except Exception:statuses.append('BEA: 연결 실패 · 이 기관의 일정은 표시하지 않습니다.')
+        return parse_bea(raw)
+    more=quote_cache.request('calendar-bea',bea,lambda:[],ttl=21600)
+    events+=more
+    statuses.append('BEA: 공식 일정 연결' if more else 'BEA: 연결된 일정이 준비되면 추가합니다.')
     return pd.DataFrame(events).drop_duplicates(subset=['when','title']).sort_values('when'),statuses
 
+@st.fragment(run_every=15)
 def render():
     st.subheader('주요 경제지표 발표 일정')
     st.caption('한국 · 미국 · 일본 · 유로존 · 영국 | 한국시간')
-    mode=st.segmented_control('표시 기간',['앞으로 30일','최근 1개월','최근 3개월','최근 1년','직접 선택'],default='최근 1개월') or '최근 1개월'
+    mode=st.segmented_control('표시 기간',['앞으로 30일','최근 1개월','최근 3개월','최근 1년','직접 선택'],default='앞으로 30일') or '앞으로 30일'
     with st.spinner('공식 발표 일정 조회 중…'):frame,status=load()
     countries=st.multiselect('경제권', ['한국','미국','일본','유로존','영국'],default=['한국','미국','일본','유로존','영국'])
     frame=frame[frame.country.isin(countries)]
@@ -87,9 +89,14 @@ def render():
     if frame.empty:st.info('이 기간에 확인된 발표 일정이 없습니다.')
     from html import escape
     import calendar_values
-    with st.spinner('지난 발표 실적을 연결하고 있습니다…'):lookup=calendar_values.collect(frame[frame.country=='미국'],current)
     import calendar_international_values
-    international=calendar_international_values.collect(frame,current)
+    import quote_cache,hashlib
+    signature='|'.join(str(row['when'])+row['country']+row['title'] for _,row in frame.iterrows())
+    lookup_key='calendar-values-'+hashlib.sha256(signature.encode()).hexdigest()[:16]
+    def fetch_values():
+        return {'lookup':calendar_values.collect(frame[frame.country=='미국'],current),'international':calendar_international_values.collect(frame,current)}
+    payload=quote_cache.request(lookup_key,fetch_values,lambda:{'lookup':{},'international':None},ttl=3600)
+    lookup=payload['lookup'];international=payload['international']
     st.caption('중요도 ●●● 높음 · ●●○ 보통 · ●○○ 참고 | 지표 이름에 커서를 올리면 설명을 볼 수 있습니다.')
     for day,group in frame.groupby(frame.when.dt.strftime('%Y.%m.%d'),sort=False):
         weekday=group.iloc[0]['when'].weekday()
