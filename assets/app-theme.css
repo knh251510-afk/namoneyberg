@@ -1,4 +1,56 @@
- :root{color-scheme:dark;--nb-bg:#10151d;--nb-surface:#18212c;--nb-soft:#202c3a;--nb-border:#304052;--nb-text:#e8edf3;--nb-muted:#a9b4c2;--nb-accent:#9cc5f0;--nb-primary:var(--nb-text);--nb-rise:#ff7b7b;--nb-fall:#5b9dff;--nb-radius:6px;--nb-font-body:.875rem;--nb-leading-body:1.1875rem;--nb-font-title:1.625rem;--nb-leading-title:2.1875rem;--nb-space-1:4px;--nb-space-2:8px;--nb-space-3:16px;--nb-space-4:24px;--nb-space-5:32px}
+:root{
+ color-scheme:dark;
+ --nb-bg:#10151d;
+ --nb-surface:#18212c;
+ --nb-soft:#202c3a;
+ --nb-border:#304052;
+ --nb-text:#e8edf3;
+ --nb-muted:#a9b4c2;
+ --nb-accent:#9cc5f0;
+ --nb-primary:var(--nb-text);
+ --nb-rise:#ff7b7b;
+ --nb-fall:#5b9dff;
+ --nb-radius:6px;
+ --nb-font-body:.875rem;
+ --nb-leading-body:1.1875rem;
+ --nb-font-title:1.625rem;
+ --nb-leading-title:2.1875rem;
+ --nb-space-1:4px;
+ --nb-space-2:8px;
+ --nb-space-3:16px;
+ --nb-space-4:24px;
+ --nb-space-5:32px;
+ --night-bg:var(--nb-bg);
+ --night-panel:var(--nb-surface);
+ --night-raised:var(--nb-soft);
+ --night-border:var(--nb-border);
+ --night-text:var(--nb-text);
+ --night-muted:var(--nb-muted);
+ --night-accent:var(--nb-accent);
+ --seed-color-palette-carrot-100:#1a2b3c;
+ --seed-color-palette-carrot-200:#223b53;
+ --seed-color-palette-carrot-300:#3b5c7c;
+ --seed-color-palette-carrot-400:#608ab1;
+ --seed-color-palette-carrot-500:#85add4;
+ --seed-color-palette-carrot-600:#9cc5f0;
+ --seed-color-palette-carrot-700:#afd2f6;
+ --seed-color-palette-carrot-800:#bddbfa;
+ --seed-color-palette-carrot-900:#d4e8fc;
+ --seed-color-palette-carrot-1000:#e9f3ff;
+ --seed-color-fg-neutral:var(--night-text);
+ --seed-color-fg-neutral-muted:var(--night-muted);
+ --seed-color-fg-brand:var(--night-accent);
+ --seed-color-bg-layer-default:var(--night-bg);
+ --seed-color-bg-layer-floating:var(--night-raised);
+ --seed-color-bg-neutral-muted:var(--night-panel);
+ --seed-color-bg-neutral-weak:var(--night-raised);
+ --seed-color-bg-brand-solid:#9cc5f0;
+ --seed-color-bg-brand-solid-pressed:#bddbfa;
+ --seed-color-fg-on-brand-solid:#10151d;
+ --seed-color-bg-brand-weak:#21354a;
+ --seed-color-stroke-neutral-muted:var(--night-border);
+}
+ 
 
 @font-face{font-family:Pretendard;src:url('/app/static/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
 
@@ -269,16 +321,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #8b
 .st-key-main_navigation a:focus-visible,.brand-name:focus-visible{outline:2px solid var(--seed-color-palette-carrot-800)!important;outline-offset:3px!important}
 
 /* NAMONEYBERG night palette. SEED components retained; brand colors overridden. */
-:root{
- color-scheme:dark;
- --nb-rise:#ff7b7b;--nb-fall:#5b9dff;
- --night-bg:#10151d;--night-panel:#18212c;--night-raised:#202c3a;--night-border:#304052;--night-text:#e6edf5;--night-muted:#a6b4c5;--night-accent:#9cc5f0;
- --seed-color-palette-carrot-100:#1a2b3c;--seed-color-palette-carrot-200:#223b53;--seed-color-palette-carrot-300:#3b5c7c;--seed-color-palette-carrot-400:#608ab1;--seed-color-palette-carrot-500:#85add4;--seed-color-palette-carrot-600:#9cc5f0;--seed-color-palette-carrot-700:#afd2f6;--seed-color-palette-carrot-800:#bddbfa;--seed-color-palette-carrot-900:#d4e8fc;--seed-color-palette-carrot-1000:#e9f3ff;
- --seed-color-fg-neutral:var(--night-text);--seed-color-fg-neutral-muted:var(--night-muted);--seed-color-fg-brand:var(--night-accent);
- --seed-color-bg-layer-default:var(--night-bg);--seed-color-bg-layer-floating:var(--night-raised);--seed-color-bg-neutral-muted:var(--night-panel);--seed-color-bg-neutral-weak:var(--night-raised);
- --seed-color-bg-brand-solid:#9cc5f0;--seed-color-bg-brand-solid-pressed:#bddbfa;--seed-color-fg-on-brand-solid:#10151d;--seed-color-bg-brand-weak:#21354a;--seed-color-stroke-neutral-muted:var(--night-border);
- --nb-primary:var(--night-text);--nb-accent:var(--night-accent);--nb-bg:var(--night-bg);--nb-surface:var(--night-panel);--nb-text:var(--night-text);--nb-muted:var(--night-muted);--nb-border:var(--night-border);--nb-soft:var(--night-panel);
-}
+
 html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{background:var(--night-bg)!important;color:var(--night-text)!important}
 .stApp h1,.stApp h2,.stApp h3,.stApp h4,.brand-name,.brand-name b{color:var(--night-text)!important}
 .st-key-main_navigation{background:transparent!important}

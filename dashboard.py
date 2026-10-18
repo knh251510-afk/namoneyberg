@@ -304,6 +304,12 @@ def render_page(page,embedded=False):
                         report=overview(key,model,articles,context)
                         report['data_snapshot']=context
                         report['generated_at']=data.now().isoformat()
+                        if st.session_state.get('brief_with_image',True):
+                            try:
+                                from briefing_art import generate
+                                report['cover_image']=generate(key,report)
+                            except Exception:
+                                st.warning('대표 이미지 생성에 실패했습니다. 본문 초안은 검토할 수 있습니다.')
                         st.session_state['briefing_draft']=report
             except Exception as error:
                 from openai import APIStatusError
@@ -328,6 +334,8 @@ def render_page(page,embedded=False):
             report_period=saved.get('period',{})
             briefing_ui.metadata('브리핑 기준 '+report_period.get('start','')[:10]+' ~ '+report_period.get('end','')[:10])
             r=saved['report']
+            import briefing_art
+            briefing_art.render(saved)
             from html import escape
             st.markdown('<div class="brief-lead"><h3>'+escape(r['headline'])+'</h3><p>'+escape(r['summary'])+'</p></div>',unsafe_allow_html=True)
             category=briefing_ui.category_picker()
