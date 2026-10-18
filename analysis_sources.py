@@ -130,7 +130,14 @@ def dart_companies(_key):
 
 @st.cache_data(ttl=86400,show_spinner=False,max_entries=1024)
 def resolve_dart_company(stock_code, key):
-    """Use the small public search response before downloading the full directory."""
+    """Resolve from the bundled official snapshot before making network calls."""
+    path=Path(__file__).with_name('static')/'dart-companies.json'
+    if path.exists():
+        try:
+            snapshot=json.loads(path.read_text())
+            company=next((c for c in snapshot.get('companies',[]) if c.get('stock_code')==stock_code and re.fullmatch(r'\d{8}',c.get('corp_code',''))),None)
+            if company:return company
+        except (OSError,ValueError,TypeError):pass
     try:
         response=httpx.post('https://dart.fss.or.kr/dsae001/search.ax',
             data={'textCrpNm':stock_code,'currentPage':'1','maxResults':'100'},
