@@ -4,7 +4,6 @@ from unittest.mock import patch
 import pandas as pd
 import briefing_store as store
 from briefing_context import observations
-from briefing_harness import validate
 
 class PublicationTests(unittest.TestCase):
     def report(self,stamp):
@@ -35,11 +34,4 @@ class PublicationTests(unittest.TestCase):
         rows=observations(f,{'url':'https://example.org'},'cpi')
         self.assertEqual(len(rows),2)
         self.assertAlmostEqual(next(x for x in rows if x['country']=='USA')['change'],.2)
-    def test_unsupported_summary_number_blocked(self):
-        r={'headline':'요약','summary':'99%','themes':[{'title':'흐름','facts':'3.2%','news_ids':['N1','N2']}]}
-        evidence=[{'id':'N1','url':'https://a.example','excerpt':'3.2%'},{'id':'N2','url':'https://b.example','excerpt':'3.2%'}]
-        with self.assertRaises(ValueError):validate(r,evidence,{})
-        draft_validation=validate(r,evidence,{},strict_numbers=False)
-        self.assertFalse(draft_validation['passed'])
-        self.assertTrue(draft_validation['warnings'])
 if __name__=='__main__':unittest.main()

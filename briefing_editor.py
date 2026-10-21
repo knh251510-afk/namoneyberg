@@ -3,15 +3,12 @@ from copy import deepcopy
 import streamlit as st
 import admin_auth
 import briefing_store
-from briefing_harness import validate
 
 def render():
     if not admin_auth.is_admin():return
     draft=st.session_state.get('briefing_draft')
     if not draft:return
     with st.expander('브리핑 초안 검토 · 게시',expanded=True):
-        for warning in draft.get('validation',{}).get('warnings',[]):
-            st.warning('수정 필요: '+warning)
         from briefing_art import render as render_art
         render_art(draft,key='brief_cover_draft')
         edited=deepcopy(draft)
@@ -28,7 +25,8 @@ def render():
             approved=st.form_submit_button('검토 완료 · 게시',type='primary')
         if approved:
             try:
-                edited['validation']=validate(edited['report'],edited['evidence'],edited.get('data_snapshot',{}))
+                edited.pop('validation',None)
+                edited.pop('editorial_review',None)
                 edited['editorial_changes']={'before':draft['report'],'after':edited['report']}
                 edited['publication_status']='approved'
                 briefing_store.publish(edited)

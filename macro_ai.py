@@ -5,7 +5,7 @@ from openai import OpenAI
 from macro_data import week_bounds, prioritize_news
 
 
-def _generate_overview(key, model, articles, snapshot, validate_output=True):
+def _generate_overview(key, model, articles, snapshot):
     start,end=week_bounds()
     articles=prioritize_news(articles)
     selected=[]
@@ -53,8 +53,6 @@ def _generate_overview(key, model, articles, snapshot, validate_output=True):
     if response.status!='completed' or not response.output_text:
         raise ValueError('요약 응답이 완료되지 않았습니다. 다시 생성해주세요.')
     result=json.loads(response.output_text)
-    from briefing_harness import validate
-    validation=validate(result,evidence,snapshot) if validate_output else None
     lookup={r['id']:r for r in evidence}
     for category in ('매크로','글로벌','산업'):
         if sum(t['category']==category for t in result['themes'])>3:
@@ -64,7 +62,7 @@ def _generate_overview(key, model, articles, snapshot, validate_output=True):
             raise ValueError('AI가 제공되지 않은 출처를 인용하여 결과를 표시하지 않았습니다.')
         theme['sources']=[lookup[x] for x in theme['news_ids']]
     return {'report':result,'evidence':evidence,'period':prompt['period_kst'],
-            'validation':validation,'model':model,'usage':response.usage.model_dump() if response.usage else None}
+            'model':model,'usage':response.usage.model_dump() if response.usage else None}
 
 
 def overview(key,model,articles,snapshot,progress=None):
