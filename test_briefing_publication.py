@@ -39,4 +39,7 @@ class PublicationTests(unittest.TestCase):
         r={'headline':'요약','summary':'99%','themes':[{'title':'흐름','facts':'3.2%','news_ids':['N1','N2']}]}
         evidence=[{'id':'N1','url':'https://a.example','excerpt':'3.2%'},{'id':'N2','url':'https://b.example','excerpt':'3.2%'}]
         with self.assertRaises(ValueError):validate(r,evidence,{})
+        draft_validation=validate(r,evidence,{},strict_numbers=False)
+        self.assertFalse(draft_validation['passed'])
+        self.assertTrue(draft_validation['warnings'])
 if __name__=='__main__':unittest.main()

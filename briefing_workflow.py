@@ -17,7 +17,7 @@ class BriefingState(TypedDict,total=False):
     result:dict
     stages:list
 
-def build_workflow(generator=None,index=None):
+def build_workflow(generator=None,index=None,progress=None):
     index=index or NewsIndex()
     def ingest(s):
         index.ingest(s['articles']);return {'stages':['index']}
@@ -35,7 +35,7 @@ def build_workflow(generator=None,index=None):
         result=fn(s['key'],s['model'],s['retrieved'],{**s['snapshot'],'retrieval_groups':s['groups'],'economic_ontology':s['ontology_context']},validate_output=False)
         return {'result':result,'stages':s['stages']+['generate']}
     def verify(s):
-        r=s['result'];r['validation']=validate(r['report'],r['evidence'],s['snapshot'])
+        r=s['result'];r['validation']=validate(r['report'],r['evidence'],s['snapshot'],strict_numbers=False)
         # Comparisons are optional; insufficient evidence must not produce manufactured contrasts.
         for theme in r['report']['themes']:
             ids=theme.get('comparison_ids',[])
@@ -43,8 +43,8 @@ def build_workflow(generator=None,index=None):
                 raise ValueError('기사 비교의 근거가 부족하여 게시하지 않았습니다.')
         r['ontology']={**s['ontology_context'],'validation':ontology.validate_concepts(r['report'],r['evidence'])}
         r['retrieval']={'method':'TF-IDF character n-gram / LangChain retriever tool','groups':s['groups'],'documents':len(s['retrieved'])}
-        r['workflow']={'engine':'LangGraph','stages':s['stages']+['validate'],'status':'validated'}
-        if generator is None:
+        r['workflow']={'engine':'LangGraph','stages':s['stages']+['validate'],'status':'validated' if r['validation']['passed'] else 'needs_review'}
+        if generator is None and r['validation']['passed']:
             from briefing_review import review
             r['editorial_review']=review(s['key'],s['model'],r,s['snapshot'])
         return {'result':r,'stages':s['stages']+['validate']}
@@ -52,6 +52,7 @@ def build_workflow(generator=None,index=None):
     labels={'index':'뉴스 색인','retrieve':'뉴스 검색','ontology':'개념 연결','generate':'초안 작성','validate':'근거 검증·검수'}
     def guarded(name,node):
         def run_stage(state):
+            if progress:progress(labels[name]+' 중…')
             try:return node(state)
             except ValueError as exc:
                 raise ValueError(labels[name]+' 단계: '+str(exc)) from exc
@@ -61,8 +62,20 @@ def build_workflow(generator=None,index=None):
     graph.add_edge(START,'index');graph.add_edge('index','retrieve');graph.add_edge('retrieve','ontology');graph.add_edge('ontology','generate');graph.add_edge('generate','validate');graph.add_edge('validate',END)
     return graph.compile()
 
-def run(key,model,articles,snapshot):
+def run(key,model,articles,snapshot,progress=None):
     # No checkpoint/tracing of the API credential. Only the final non-secret result is returned.
     from langsmith import tracing_context
     with tracing_context(enabled=False):
-        return build_workflow().invoke({'key':key,'model':model,'articles':articles,'snapshot':snapshot})['result']
+        graph=build_workflow()
+        initial={'key':key,'model':model,'articles':articles,'snapshot':snapshot}
+        if progress is None:return graph.invoke(initial)['result']
+        # Streamlit updates must run on the caller's UI thread, not a graph worker.
+        next_labels={'index':'뉴스 검색 중…','retrieve':'개념 연결 중…',
+                     'ontology':'초안 작성 중…','generate':'근거 검증·검수 중…','validate':'초안 정리 중…'}
+        progress('뉴스 색인 중…')
+        result=None
+        for update in graph.stream(initial,stream_mode='updates'):
+            for stage,values in update.items():
+                if 'result' in values:result=values['result']
+                progress(next_labels.get(stage,'브리핑 처리 중…'))
+        return result

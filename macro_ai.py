@@ -67,9 +67,9 @@ def _generate_overview(key, model, articles, snapshot, validate_output=True):
             'validation':validation,'model':model,'usage':response.usage.model_dump() if response.usage else None}
 
 
-def overview(key,model,articles,snapshot):
+def overview(key,model,articles,snapshot,progress=None):
     from briefing_workflow import run
-    return run(key,model,articles,snapshot)
+    return run(key,model,articles,snapshot,progress=progress)
 
 
 def report_markdown(saved):

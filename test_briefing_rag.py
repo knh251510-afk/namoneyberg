@@ -35,4 +35,17 @@ class RetrievalWorkflowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             graph=build_workflow(invalid,NewsIndex(Path(folder)/'index.sqlite'))
             with self.assertRaises(ValueError):graph.invoke({'key':'no-real-key','model':'test','articles':self.articles(),'snapshot':{}})
+    def test_numeric_warning_keeps_draft_and_reports_progress(self):
+        def with_number(*args,**kwargs):
+            result=self.generator(*args,**kwargs)
+            result['report']['summary']='확인 필요 987654321%'
+            return result
+        messages=[]
+        with tempfile.TemporaryDirectory() as folder:
+            graph=build_workflow(with_number,NewsIndex(Path(folder)/'index.sqlite'),progress=messages.append)
+            result=graph.invoke({'key':'no-real-key','model':'test','articles':self.articles(),'snapshot':{}})['result']
+        self.assertFalse(result['validation']['passed'])
+        self.assertTrue(result['validation']['warnings'])
+        self.assertEqual(result['workflow']['status'],'needs_review')
+        self.assertEqual(len(messages),5)
 if __name__=='__main__':unittest.main()

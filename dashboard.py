@@ -291,20 +291,23 @@ def render_page(page,embedded=False):
                 model=settings.model_name()
                 if not key:raise ValueError('생성 서비스가 설정되지 않았습니다. 관리자에게 문의해주세요.')
                 else:
-                    with st.spinner('뉴스 근거를 종합하고 해석을 작성하고 있습니다…'):
+                    with st.status('브리핑 생성 중…',expanded=True) as generation_status:
                         from macro_ai import overview
                         from briefing_context import build
+                        generation_status.update(label='경제지표와 시장 데이터 수집 중…')
                         context=build(fetch_safe,data.weekly_markets)
-                        report=overview(key,model,articles,context)
+                        report=overview(key,model,articles,context,progress=lambda message:generation_status.update(label=message))
                         report['data_snapshot']=context
                         report['generated_at']=data.now().isoformat()
                         if st.session_state.get('brief_with_image',True):
+                            generation_status.update(label='대표 이미지 생성 중…')
                             try:
                                 from briefing_art import generate
                                 report['cover_image']=generate(key,report)
                             except Exception:
                                 st.warning('대표 이미지 생성에 실패했습니다. 본문 초안은 검토할 수 있습니다.')
                         st.session_state['briefing_draft']=report
+                        generation_status.update(label='초안 생성 완료 · 아래에서 검토해주세요.',state='complete',expanded=False)
             except Exception as error:
                 from openai import APIStatusError
                 if isinstance(error,APIStatusError):st.error(f'OpenAI 오류: HTTP {error.status_code} / {error.code or "미상"}')
