@@ -1,15 +1,6 @@
-# Brand assets
+# 브랜드 자산
 
-- `static/brand/namoneyberg-wordmark.webp`: user-supplied full wordmark, lossily compressed without changing layout; displayed as home link.
-- `static/brand/namoneyberg-social.jpg`: user-supplied full-resolution logo for sharing.
-- `static/brand/namoneyberg-icon.png`: 256px icon made with the built-in image tool.
+- `static/brand/namoneyberg-english.webp`: 사용자가 제공한 영문 워드마크. 헤더에서 홈 링크로 표시합니다. 다크 모드는 CSS 반전·블렌딩을 적용합니다.
+- `static/brand/namoneyberg-icon.png`: 같은 영문 로고의 N 형태를 바탕으로 제작한 정사각형 아이콘. Streamlit 페이지 아이콘으로 사용합니다.
 
-Icon edit prompt: preserve the supplied heavy geometric letterforms; retain only black 나 and blue 버, side by side on white; remove 머, 니, 그 and period; no decoration.
-
-Streamlit Community Cloud generates link-preview images from a daily screenshot. The separate social image is provided for platforms that permit a custom upload; it is not represented as a custom Cloud Open Graph setting.
-
-Dark header: `static/brand/namoneyberg-wordmark-dark.webp`. Built-in image edit prompt: preserve exact wordmark geometry, change black letters to off-white and blue letters to soft blue, remove white background to transparent alpha, no glow or shadow. Original uploaded wordmark remains unchanged.
-
-Current header: `static/brand/namoneyberg-english.webp`, user-supplied English wordmark with compression only. Dark mode uses CSS inversion and screen blending to preserve its letterforms.
-
-Current icon: `static/brand/namoneyberg-icon.png`, single uppercase N extracted with the built-in image tool from the English wordmark. Prompt: retain only the original heavy black N, preserve its shape and proportions, center on white square with 15% margin, no decoration or additional letters. This replaces the earlier 나버 icon.
+이전에 사용한 한글 워드마크와 공유용 이미지는 현재 화면에서 참조되지 않아 제거했습니다. Streamlit Cloud의 링크 미리보기와 별도 Open Graph 설정을 혼동하지 않도록, 사용자 지정 공유 썸네일 자동 적용을 보장하지 않습니다.
