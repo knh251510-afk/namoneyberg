@@ -1,25 +1,35 @@
+# Local environments and credentials
 .venv/
+venv/
 .env
-__pycache__/
+.env.*
+!.env.example
+.private/
+.streamlit/secrets.toml
 
+# Python, editor and test output
+__pycache__/
+*.py[cod]
+*.bin
+.DS_Store
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Runtime data: publish approved content on dedicated data branches
 macro_cache/
 macro_reports/
 results/
-
-.private/
-.streamlit/secrets.toml
-.env
-.venv/
-
-macro_cache/news_rag.sqlite3*
-
-# Generated runtime files and obsolete root-level review artifacts
-*.pyc
-*.bin
-.DS_Store
+*.sqlite3*
+/overview_*.json
+/korea_current_account.json
 /quote_*.json
 /dart_[0-9]*.json
 /*-preview.png
+/*_backup.py
 /ChosunNm.ttf
 /ChosunNm.woff2
 /????????????????????????????????????????????????????????????????.json

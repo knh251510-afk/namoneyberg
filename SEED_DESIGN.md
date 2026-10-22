@@ -11,10 +11,11 @@ assets/seed-streamlit.css maps those tokens to Streamlit's native widgets.
 It is our adapter, not an upstream React component implementation. No Daangn
 logos or trademarks are used. A React migration has not been completed.
 
-Applied patterns: orange primary action, neutral secondary action, soft neutral
-field fill, visible keyboard focus, rounded selected navigation, segmented tabs,
-readable financial numbers, centered desktop content with mobile gutters.
-Price rise/fall semantic colors remain red/blue, independent of orange actions.
+Applied patterns: neutral primary/secondary actions, soft neutral field fill,
+visible keyboard focus, selected navigation, segmented tabs, readable financial
+numbers and mobile gutters. Current colors are overridden by theme_tokens.py;
+upstream carrot token names do not imply an orange application theme.
+Price rise/fall semantic colors remain red/blue, independent of action colors.
 
 Keep official vendor files unchanged; edit only the adapter. On an upgrade,
 check all referenced CSS variables and recheck focus, selected, disabled states,

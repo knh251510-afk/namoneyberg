@@ -1,11 +1,18 @@
-# NAMONEYBERG reference-based redesign — 2026-10-17
+# NAMONEYBERG 디자인 구조
 
-Primary reference: https://securities.koreainvestment.com/main/Main.jsp
-Observed stylesheet: https://securities.koreainvestment.com/inc_renewal/css/common_2021.css?ver=20260620
-The renewed site declares Pretendard at weights 100–900. Legacy styles also contain MGothic/Malgun Gothic; these proprietary font assets are not copied. NAMONEYBERG serves its own licensed Pretendard font.
+화면은 Streamlit 기본 위젯과 로컬 HTML/CSS 어댑터를 조합합니다. 외부 금융 사이트는 정보 위계 참고용이며 해당 업체의 로고·독점 폰트·마케팅 이미지를 재배포하지 않습니다.
 
-Observed layout: logo and navigation in one horizontal header; thin horizontal market ticker; white page canvas; content sections separated by measured whitespace and rules; brown active states.
+## 구현 기준
 
-Application choices: 1240 px maximum container including 32 px gutters, 21 px wordmark, 14 px navigation at 500, 28 px screen headings, 18–22 px research headings at 600, 15 px reading text with 1.75–1.85 leading, tabular numbers. Compact ticker values at 16 px, no oversized market cards in the header. Warm research lead block, flat reading sections, low-radius native controls, brown primary actions, red rises/blue falls.
+- 색상 원본: `theme_tokens.py`. 라이트는 흰 배경과 짙은 회색 강조, 다크는 중립 차콜과 밝은 회색 강조를 사용합니다.
+- CSS·차트 테마 적용: `ui_theme.py` 및 `assets/app-theme.css`.
+- 홈: 5개 이미지 카드, 호버·키보드 포커스 시 하위 메뉴, 기능별 SVG 애니메이션.
+- 테마 이미지: `theme_assets.py`의 라이트·다크 쌍. 자산 목록은 [테마 이미지 문서](docs/theme-artwork.md)를 참고합니다.
+- 상승·하락 색은 강조색과 분리하며, 수치는 표와 축에서 읽기 쉽게 정렬합니다.
+- 모션 감소 설정과 작은 화면의 터치·포커스를 함께 고려합니다.
 
-This is an original implementation using the observed hierarchy and layout as reference; no KIS logos, marketing images, proprietary fonts or source components are redistributed. No claim of using KIS's internal design system. Existing Tabler/SEED adaptations are superseded as the primary visual direction. Supporting existing open-source asset licenses remain in licenses/.
+## SEED
+
+공식 SEED CSS 토큰과 자체 Streamlit 어댑터를 사용합니다. React 컴포넌트 이식은 아닙니다. 벤더 LICENSE·NOTICE는 보존하며 자세한 내용은 [SEED 문서](SEED_DESIGN.md)를 참고합니다.
+
+현재 파일에는 이전 스타일을 덮어쓰는 규칙도 남아 있어, 모든 컴포넌트가 단일 토큰만 사용하는 상태라고 보장하지 않습니다. 스타일 수정 시 라이트·다크, 선택·호버·포커스 및 모바일 화면을 함께 확인해야 합니다.
