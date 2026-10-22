@@ -1,1 +1,0 @@
-{"url": "https://api.worldbank.org/v2/country/USA;CHN;EMU;JPN;GBR;DEU;FRA;ITA;ESP;CHE;KOR;IND;IDN;AUS;SGP;CAN;MEX;BRA;SAU;RUS;TUR;ZAF;NLD;POL;SWE;NOR;ARE;THA;VNM/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=20000&date=2000:2026", "fetched_at": "2026-10-16T14:10:44.380391+09:00", "cached": false, "stale": false}
